@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html class="light" lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Tạo tài khoản mới</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+      rel="stylesheet"
+    />
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+      }
+    </style>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#135bec",
+              "background-light": "#f6f6f8",
+              "background-dark": "#101622",
+              secondary: "#8c38ff",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-gray-900 dark:text-gray-100 min-h-screen flex items-center justify-center font-lexend"
+  >
+    <div
+      class="w-full grid lg:grid-cols-2 min-h-screen bg-white dark:bg-gray-900 shadow-xl"
+    >
+      <div
+        class="flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-16"
+      >
+        <div class="w-full max-w-sm">
+          <div class="flex flex-col items-center">
+            <h1 class="text-3xl font-bold text-primary mb-2">Đăng ký tài khoản</h1>
+            <p class="text-gray-600 dark:text-gray-400 text-center">
+              Nhập thông tin của bạn để tạo tài khoản và chờ quản trị viên phê duyệt.
+            </p>
+          </div>
+
+          <div id="message-container" class="mt-8"></div>
+
+          <form id="register-form" class="mt-8 space-y-4">
+            <div>
+              <label for="fullname" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Họ và Tên
+              </label>
+              <input
+                id="fullname"
+                name="fullname"
+                type="text"
+                required
+                class="w-full h-11 px-4 text-gray-900 dark:text-white bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-primary focus:border-primary transition"
+                placeholder="Nguyễn Văn A"
+              />
+            </div>
+            <div>
+              <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                class="w-full h-11 px-4 text-gray-900 dark:text-white bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-primary focus:border-primary transition"
+                placeholder="vd: sinhvien@tnut.edu.vn"
+              />
+            </div>
+            <div>
+              <label for="role" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Vai trò
+              </label>
+              <select
+                id="role"
+                name="role"
+                required
+                class="w-full h-11 px-4 text-gray-900 dark:text-white bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-primary focus:border-primary transition"
+              >
+                <option value="student">Sinh viên</option>
+                <option value="teacher">Giảng viên</option>
+                <option value="admin">Quản trị viên</option>
+              </select>
+            </div>
+            <div>
+              <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Mật khẩu
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                class="w-full h-11 px-4 text-gray-900 dark:text-white bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-primary focus:border-primary transition"
+                placeholder="Nhập mật khẩu"
+              />
+            </div>
+
+            <button
+              type="submit"
+              class="w-full h-12 px-5 bg-primary text-white text-base font-bold rounded-lg transition-colors hover:bg-primary/90"
+            >
+              Đăng ký
+            </button>
+          </form>
+
+          <div class="mt-6 text-center text-sm">
+            <p class="text-gray-600 dark:text-gray-400">
+              Đã có tài khoản?
+              <a
+                href="login.html"
+                class="font-bold text-primary hover:underline"
+                >Đăng nhập ngay</a
+              >
+            </p>
+          </div>
+
+          <div class="mt-12 text-center">
+            <p class="text-xs text-gray-500 dark:text-gray-500">
+              © 2024 University Name. All rights reserved.
+            </p>
+            <a
+              class="text-xs font-medium text-primary hover:underline"
+              href="#"
+              >Hỗ trợ kỹ thuật</a
+            >
+          </div>
+        </div>
+      </div>
+      <div
+        class="hidden flex-1 items-center justify-center bg-background-light p-10 lg:flex"
+      >
+        <div class="w-full max-w-md">
+  <img
+    src="https://upload.wikimedia.org/wikipedia/vi/thumb/4/47/Tr%C6%B0%E1%BB%9Dng_%C4%90%E1%BA%A1i_h%E1%BB%8Dc_K%E1%BB%B9_thu%E1%BA%ADt_C%C3%B4ng_nghi%E1%BB%87p%2C_%C4%90%E1%BA%A1i_h%E1%BB%8Dc_Th%C3%A1i_Nguy%C3%AAn.svg/900px-Tr%C6%B0%E1%BB%9Dng_%C4%90%E1%BA%A1i_h%E1%BB%8Dc_K%E1%BB%B9_thu%E1%BA%ADt_C%C3%B4ng_nghi%E1%BB%87p%2C_%C4%90%E1%BA%A1i_h%E1%BB%8Dc_Th%C3%A1i_Nguy%C3%AAn.svg.png?20230315061311"
+    alt="Hình ảnh minh họa"
+    class="w-full h-auto object-cover rounded-xl shadow-lg"
+  />
+  <h1 class="text-2xl font-bold mt-6 text-gray-800 dark:text-gray-200 whitespace-nowrap text-center">
+        TRƯỜNG ĐẠI HỌC KỸ THUẬT CÔNG NGHIỆP
+  </h1>
+  <h2 class="text-2xl font-bold mt-6 text-gray-800 dark:text-gray-200 text-center">
+    Hệ thống Quản lý và Hỗ trợ Thông tin
+  </h2>
+</div>
+      </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+
+        function showMessage(type, message, containerId = 'message-container') {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            let bgColor, textColor;
+            if (type === 'success') {
+                bgColor = 'bg-green-100 dark:bg-green-900';
+                textColor = 'text-green-800 dark:text-green-200';
+            } else if (type === 'error') {
+                bgColor = 'bg-red-100 dark:bg-red-900';
+                textColor = 'text-red-800 dark:text-red-200';
+            } else {
+                // info
+                bgColor = 'bg-blue-100 dark:bg-blue-900';
+                textColor = 'text-blue-800 dark:text-blue-200';
+            }
+
+            container.innerHTML = `
+                <div class="p-3 mb-4 rounded-lg text-sm ${bgColor} ${textColor}" role="alert">
+                    ${message}
+                </div>
+            `;
+            setTimeout(() => { container.innerHTML = ''; }, 5000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const registerForm = document.getElementById('register-form');
+
+            if (registerForm) {
+                registerForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const fullname = document.getElementById('fullname').value;
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    const role = document.getElementById('role').value;
+
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/api/register`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ fullname, email, password, role })
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            showMessage('success', data.message);
+                            registerForm.reset();
+                            // Optional: Chuyển hướng về trang đăng nhập sau 3 giây
+                            setTimeout(() => { window.location.href = 'login.html'; }, 5000);
+                        } else {
+                            showMessage('error', data.detail || 'Đăng ký thất bại.');
+                        }
+                    } catch (error) {
+                        console.error('Lỗi:', error);
+                        showMessage('error', 'Lỗi kết nối đến server. Vui lòng thử lại.');
+                    }
+                });
+            }
+        });
+    </script>
+  </body>
+</html>

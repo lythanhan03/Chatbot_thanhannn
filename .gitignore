@@ -1,0 +1,6 @@
+/.env
+/config
+/ngrok-stable-linux-amd64.zip
+/ngrok-v3-stable-linux-amd64.tgz
+/test.py
+/vectordb

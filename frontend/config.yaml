@@ -1,0 +1,16 @@
+cookie:
+  expiry_days: 30
+  key: some_secret_key
+  name: some_cookie_name
+credentials:
+  usernames:
+    admin:
+      email: admin@example.com
+      name: "Qu\u1EA3n tr\u1ECB vi\xEAn"
+      password: $2b$12$pcn18Z96KL2KDEIhfjmtYulK2/nbPQ1fRWcbuJuQtKcHmTm6dip7y
+      role: admin
+    sinhvien:
+      email: student@example.com
+      name: "Sinh vi\xEAn"
+      password: $2b$12$oMbLue25wio1eGSspzJYw.ciufq5r9NAaVyT7vJ4NlqbB0LtdVboe
+      role: sinhvien

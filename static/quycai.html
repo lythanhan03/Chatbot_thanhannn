@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tra cứu Quy chế - Quy định & Thông báo</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#135bec",
+              "background-light": "#f6f6f8",
+              "background-dark": "#101622",
+            },
+            fontFamily: {
+              "display": ["Lexend", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+</head>
+<body class="font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<div class="px-4 sm:px-10 md:px-20 lg:px-40 flex flex-1 justify-center py-5">
+<div class="layout-content-container flex flex-col max-w-[960px] flex-1">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-gray-200 dark:border-gray-700 px-4 sm:px-10 py-3">
+<div class="flex items-center gap-2 text-slate-900 dark:text-slate-200">
+    <div class="size-6 text-primary">
+        <span class="material-symbols-outlined text-2xl">school</span>
+    </div>
+    <h2 class="text-slate-900 dark:text-slate-200 text-lg font-bold leading-tight tracking-[-0.015em]">Tên Trường Đại học</h2>
+</div>
+<div class="hidden md:flex flex-1 justify-end gap-8">
+    <div class="flex items-center gap-9">
+        <a class="text-slate-900 dark:text-slate-200 text-sm font-medium leading-normal" href="/">Trang chủ</a>
+        <a class="text-slate-900 dark:text-slate-200 text-sm font-medium leading-normal" href="khach.html">Chatbot</a>
+        <a class="text-primary text-sm font-medium leading-normal border-b-2 border-primary" href="quycai.html">Tra cứu thông tin</a>
+        <a class="text-slate-900 dark:text-slate-200 text-sm font-medium leading-normal" href="contact.html">Liên hệ</a>
+        <button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]">
+            <span class="truncate">Đăng nhập</span>
+        </button>
+    </div>
+    <div class="flex items-center gap-3">
+        <button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300">
+            <span class="material-symbols-outlined text-xl">notifications</span>
+        </button>
+        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-8 shrink-0" style='background-image: url("http://googleusercontent.com/profile/picture/user-avatar");'></div>
+    </div>
+</div>
+<button class="md:hidden p-2 rounded-lg text-slate-900 dark:text-slate-200">
+    <span class="material-symbols-outlined">menu</span>
+</button>
+</header>
+<div class="py-10">
+    <div class="flex flex-col gap-3 px-4 text-center sm:text-left">
+        <h1 class="text-slate-900 dark:text-slate-200 text-3xl font-bold leading-tight tracking-[-0.015em]">Tra cứu Quy chế - Quy định & Thông báo</h1>
+        <h2 class="text-slate-700 dark:text-slate-400 text-base font-normal leading-normal">Tìm kiếm các văn bản, thông báo quan trọng từ nhà trường.</h2>
+    </div>
+</div>
+<div class="flex flex-col gap-6 px-4 py-4">
+    <div class="flex h-12 w-full overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/50 transition-colors">
+        <div class="flex items-center justify-center p-3 text-gray-500 dark:text-gray-400">
+            <span class="material-symbols-outlined text-xl">search</span>
+        </div>
+        <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-xl text-gray-900 dark:text-white focus:outline-0 focus:ring-0 border-none bg-transparent placeholder:text-gray-500 dark:placeholder:text-gray-400 px-0 text-base font-normal leading-normal" placeholder="Nhập từ khóa tìm kiếm..." value=""/>
+    </div>
+</div>
+<div class="grid grid-cols-1 gap-6 px-4 py-8 lg:grid-cols-4">
+    <aside class="col-span-1 flex flex-col gap-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-850 p-6 h-fit">
+        <h3 class="text-slate-900 dark:text-slate-200 text-lg font-bold leading-tight">Bộ lọc</h3>
+        <div class="flex flex-col gap-3">
+            <div class="flex flex-col gap-1">
+                <label class="text-sm font-medium text-slate-900 dark:text-slate-200" for="document-type">Loại văn bản</label>
+                <select id="document-type" class="form-select rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-200">
+                    <option>Tất cả</option>
+                    <option>Thông báo</option>
+                    <option>Quy định</option>
+                </select>
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-sm font-medium text-slate-900 dark:text-slate-200" for="date-range">Ngày ban hành</label>
+                <select id="date-range" class="form-select rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-200">
+                    <option>Mọi lúc</option>
+                    <option>Trong 1 tháng qua</option>
+                    <option>Trong 6 tháng qua</option>
+                </select>
+            </div>
+            <div class="flex flex-col gap-1">
+                <label class="text-sm font-medium text-slate-900 dark:text-slate-200" for="department">Phòng ban</label>
+                <select id="department" class="form-select rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-900 dark:text-gray-200">
+                    <option>Tất cả</option>
+                    <option>Phòng Đào tạo</option>
+                    <option>Phòng Công tác Sinh viên</option>
+                    <option>Phòng Kế hoạch - Tài chính</option>
+                </select>
+            </div>
+        </div>
+        <div class="flex flex-col gap-2 pt-4">
+            <button class="flex items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold transition-colors hover:bg-primary/90">Áp dụng</button>
+            <button class="flex items-center justify-center rounded-lg h-10 px-4 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm font-medium transition-colors hover:bg-gray-200 dark:hover:bg-gray-600">Xóa bộ lọc</button>
+        </div>
+    </aside>
+    <main class="col-span-1 lg:col-span-3 flex flex-col gap-4">
+        <div class="flex flex-col gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-850 p-6">
+            <h3 class="text-slate-900 dark:text-slate-200 text-lg font-bold leading-tight">Thông báo về lịch thi cuối kỳ học kỳ 2 năm học 2023-2024</h3>
+            <p class="text-slate-700 dark:text-slate-400 text-sm font-normal leading-normal">Chi tiết lịch thi, phòng thi và danh sách sinh viên các môn học đại cương và chuyên ngành trong học kỳ 2, năm học 2023-2024.</p>
+            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-600 dark:text-slate-400">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-sm font-semibold">Thông báo</span>
+                <span>|</span>
+                <span>Ngày ban hành: 20/05/2024</span>
+                <span>|</span>
+                <span>Phòng Đào tạo</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-3 pt-3">
+                <button class="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-primary text-white text-sm font-bold transition-colors hover:bg-primary/90">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
+                    <span>Xem chi tiết</span>
+                </button>
+                <button class="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-primary/10 dark:bg-primary/20 text-primary text-sm font-semibold hover:bg-primary/20 transition-colors">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">download</span>
+                    <span>Tải xuống PDF</span>
+                </button>
+            </div>
+        </div>
+        <div class="flex flex-col gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-850 p-6">
+            <h3 class="text-slate-900 dark:text-slate-200 text-lg font-bold leading-tight">Quy định về việc xét và cấp học bổng khuyến khích học tập</h3>
+            <p class="text-slate-700 dark:text-slate-400 text-sm font-normal leading-normal">Quy định chi tiết về đối tượng, tiêu chuẩn, mức học bổng, quy trình xét và cấp học bổng khuyến khích học tập cho sinh viên hệ chính quy.</p>
+            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-600 dark:text-slate-400">
+                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 text-sm font-semibold">Quy định</span>
+                <span>|</span>
+                <span>Ngày ban hành: 15/04/2024</span>
+                <span>|</span>
+                <span>Phòng Công tác Sinh viên</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-3 pt-3">
+                <button class="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-primary text-white text-sm font-bold transition-colors hover:bg-primary/90">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
+                    <span>Xem chi tiết</span>
+                </button>
+                <button class="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-primary/10 dark:bg-primary/20 text-primary text-sm font-semibold hover:bg-primary/20 transition-colors">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">download</span>
+                    <span>Tải xuống PDF</span>
+                </button>
+            </div>
+        </div>
+        <div class="flex flex-col gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-850 p-6">
+            <h3 class="text-slate-900 dark:text-slate-200 text-lg font-bold leading-tight">Hướng dẫn đóng học phí học kỳ 1 năm học 2024-2025</h3>
+            <p class="text-slate-700 dark:text-slate-400 text-sm font-normal leading-normal">Thông báo về mức học phí, thời hạn và các hình thức đóng học phí cho học kỳ 1 sắp tới. Sinh viên vui lòng hoàn thành trước thời hạn quy định.</p>
+            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-600 dark:text-slate-400">
+                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-sm font-semibold">Thông báo</span>
+                <span>|</span>
+                <span>Ngày ban hành: 10/04/2024</span>
+                <span>|</span>
+                <span>Phòng Kế hoạch - Tài chính</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-3 pt-3">
+                <button class="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-primary text-white text-sm font-bold transition-colors hover:bg-primary/90">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
+                    <span>Xem chi tiết</span>
+                </button>
+                 <button class="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-primary/10 dark:bg-primary/20 text-primary text-sm font-semibold hover:bg-primary/20 transition-colors">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">download</span>
+                    <span>Tải xuống PDF</span>
+                </button>
+            </div>
+        </div>
+        <div class="flex justify-center items-center gap-1 pt-6">
+            <button class="flex items-center justify-center size-9 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
+                <span class="material-symbols-outlined text-xl">chevron_left</span>
+            </button>
+            <button class="flex items-center justify-center size-9 rounded-full bg-primary text-white text-sm font-medium">1</button>
+            <button class="flex items-center justify-center size-9 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm font-medium">2</button>
+            <button class="flex items-center justify-center size-9 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm font-medium">3</button>
+            <span class="text-gray-500">...</span>
+            <button class="flex items-center justify-center size-9 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm font-medium">10</button>
+            <button class="flex items-center justify-center size-9 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
+                <span class="material-symbols-outlined text-xl">chevron_right</span>
+            </button>
+        </div>
+    </main>
+</div>
+<footer class="mt-16 border-t border-gray-200 dark:border-gray-700 pt-10 pb-8 text-center">
+    <p class="text-xs text-slate-600 dark:text-slate-400">© 2024 Trường Đại học. Mọi quyền được bảo lưu.</p>
+</footer>
+</div>
+</div>
+</div>
+</div>
+</body></html>

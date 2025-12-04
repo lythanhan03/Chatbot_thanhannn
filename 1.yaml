@@ -1,0 +1,16 @@
+cookie:
+  expiry_days: 30
+  key: some_secret_key
+  name: some_cookie_name
+credentials:
+  usernames:
+    admin:
+      email: admin@example.com
+      name: Quản trị viên
+      password: '$2b$12$Kk27e82.u2T/c3o.L3w5yO2hA4E6q6E3u9X1g0q.M5c7t2y.d2' # Đây là mật khẩu 'abc123' đã được mã hóa
+      role: admin
+    sinhvien:
+      email: student@example.com
+      name: Sinh viên
+      password: '$2b$12$Kk27e82.u2T/c3o.L3w5yO2hA4E6q6E3u9X1g0q.M5c7t2y.d2' # Đây là mật khẩu 'abc123' đã được mã hóa
+      role: student

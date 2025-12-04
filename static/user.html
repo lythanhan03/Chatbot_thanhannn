@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html class="light" lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Trợ lý Tuyển sinh - Chatbot</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+      rel="stylesheet"
+    />
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+      }
+    </style>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#135bec",
+              "background-light": "#f6f6f8",
+              "background-dark": "#101622",
+              secondary: "#8c38ff",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-gray-900 dark:text-gray-100 min-h-screen font-lexend"
+  >
+    <div
+      class="flex h-screen overflow-hidden antialiased transition-all duration-300"
+    >
+      <aside
+        class="flex flex-col w-64 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
+      >
+        <div class="p-6 border-b border-gray-200 dark:border-gray-800">
+          <h1 class="text-xl font-bold text-primary">Chatbot AI</h1>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Trợ lý thông tin nhà trường
+          </p>
+        </div>
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
+          <a
+            class="flex items-center gap-3 p-3 rounded-xl bg-primary text-white hover:bg-primary/90 transition-colors"
+            href="user.html"
+          >
+            <span class="material-symbols-outlined text-xl">smart_toy</span>
+            <span class="text-sm font-medium">Hỏi & Đáp (Chatbot)</span>
+          </a>
+          <a
+            class="flex items-center gap-3 p-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            href="/"
+          >
+            <span class="material-symbols-outlined text-xl">home</span>
+            <span class="text-sm font-medium">Trang chủ</span>
+          </a>
+          <a
+            class="flex items-center gap-3 p-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            href="quycai.html"
+          >
+            <span class="material-symbols-outlined text-xl">gavel</span>
+            <span class="text-sm font-medium">Quy chế & Quy định</span>
+          </a>
+        </nav>
+        <div
+          class="p-4 border-t border-gray-200 dark:border-gray-800 space-y-3"
+        >
+          <div class="flex items-center gap-3">
+            <div
+              class="flex-shrink-0 size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold"
+            >
+              <span class="material-symbols-outlined">person</span>
+            </div>
+            <div>
+              <span id="user-fullname" class="block font-semibold"
+                >Người dùng</span
+              >
+              <span class="text-xs text-gray-500 dark:text-gray-400"
+                >Tài khoản cá nhân</span
+              >
+            </div>
+          </div>
+          <button
+            onclick="logout()"
+            class="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-red-500 text-white hover:bg-red-600 transition-colors text-sm font-medium"
+          >
+            <span class="material-symbols-outlined text-xl">logout</span>
+            Đăng xuất
+          </button>
+        </div>
+      </aside>
+
+      <main class="flex-1 overflow-y-auto">
+        <div class="flex flex-col h-full">
+          <header
+            class="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-900"
+          >
+            <h2 class="text-xl font-semibold">Trợ lý Hỏi & Đáp</h2>
+            <button
+              class="flex items-center gap-2 p-2 text-sm font-medium text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              <span class="material-symbols-outlined text-xl">settings</span>
+              Cài đặt
+            </button>
+          </header>
+
+          <div class="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-950">
+            <div
+              id="chat-container"
+              class="max-w-4xl mx-auto flex flex-col space-y-4"
+            >
+              </div>
+          </div>
+
+          <footer
+            class="p-6 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
+          >
+            <div class="max-w-4xl mx-auto">
+              <div
+                class="flex flex-wrap gap-2 mb-4 text-center justify-center"
+              >
+                <button
+                  class="px-4 py-2 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-full transition-colors"
+                >
+                  Điều kiện xét tuyển ngành CNTT?
+                </button>
+                <button
+                  class="px-4 py-2 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-full transition-colors"
+                >
+                  Thời gian nộp hồ sơ?
+                </button>
+                <button
+                  class="px-4 py-2 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-full transition-colors"
+                >
+                  Lịch thi cuối kỳ?
+                </button>
+              </div>
+              <div class="relative flex items-center">
+                <input
+                  id="question-input"
+                  class="w-full h-12 px-4 pr-12 text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-1 focus:ring-primary focus:border-primary transition"
+                  placeholder="Nhập câu hỏi của bạn ở đây..."
+                  type="text"
+                />
+                <button
+                  id="send-button"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center size-10 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                >
+                  <span class="material-symbols-outlined text-xl">send</span>
+                </button>
+              </div>
+            </div>
+          </footer>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      // Đảm bảo URL cơ sở của API khớp với nơi server FastAPI đang chạy
+      const API_BASE_URL = window.location.origin;
+
+      function showMessage(type, message, containerId = 'message-container') {
+          // Chỉ cần định nghĩa để tránh lỗi, không hiển thị trong chat UI
+          console.log(`[${type.toUpperCase()}] ${message}`);
+      }
+
+      function logout() {
+          localStorage.clear();
+          window.location.href = 'login.html';
+      }
+
+      const USER_ROLE = localStorage.getItem('user_role');
+      const USER_FULLNAME = localStorage.getItem('user_fullname');
+
+      // KIỂM TRA ĐĂNG NHẬP VÀ VAI TRÒ
+      if (!USER_ROLE || USER_ROLE === 'admin') {
+          alert('Bạn cần đăng nhập với vai trò Sinh viên/Giáo viên để sử dụng chức năng này.');
+          window.location.href = 'login.html';
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+          // Cập nhật tên người dùng
+          const fullnameElement = document.getElementById('user-fullname');
+          if (fullnameElement) fullnameElement.textContent = USER_FULLNAME || 'Người dùng';
+
+          const input = document.getElementById('question-input');
+          const sendButton = document.getElementById('send-button');
+          const chatContainer = document.getElementById('chat-container');
+
+          // --- Hàm thêm tin nhắn vào giao diện ---
+          function addMessage(sender, content, isHtml = false) {
+              const messageElement = document.createElement('div');
+              const isUser = sender === 'user';
+
+              messageElement.className = `flex mb-4 ${isUser ? 'justify-end' : 'justify-start'}`;
+
+              // Chèn nội dung, cho phép HTML để hiển thị <table>/<h3>
+              const contentHTML = isHtml ? content : `<p class="text-sm">${content}</p>`;
+
+              messageElement.innerHTML = `
+                  <div class="${isUser ? 'bg-primary text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'} p-3 max-w-2xl rounded-xl ${isUser ? 'rounded-br-none' : 'rounded-tl-none'} shadow-md">
+                      ${contentHTML}
+                  </div>
+              `;
+              chatContainer.appendChild(messageElement);
+              chatContainer.scrollTop = chatContainer.scrollHeight;
+          }
+
+          // --- Hàm gửi câu hỏi ---
+          async function sendQuestion() {
+              const question = input.value.trim();
+              if (!question) return;
+
+              addMessage('user', question);
+              input.value = '';
+
+              // Thêm trạng thái loading
+              const loadingMessage = document.createElement('div');
+              loadingMessage.id = 'loading-message';
+              loadingMessage.className = 'flex mb-4 justify-start';
+              loadingMessage.innerHTML = `
+                  <div class="bg-gray-200 dark:bg-gray-700 p-3 max-w-2xl rounded-xl rounded-tl-none shadow-md">
+                      <p class="text-sm text-gray-500 dark:text-gray-400 italic">Đang tìm kiếm và tạo câu trả lời...</p>
+                  </div>
+              `;
+              chatContainer.appendChild(loadingMessage);
+              chatContainer.scrollTop = chatContainer.scrollHeight;
+
+              try {
+                  const response = await fetch(`${API_BASE_URL}/ask`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ question: question })
+                  });
+
+                  const data = await response.json();
+
+                  // Xóa trạng thái loading
+                  loadingMessage.remove();
+
+                  if (response.ok && data.answer) {
+                      // Chèn câu trả lời HTML từ server
+                      addMessage('bot', data.answer, true);
+                  } else {
+                      addMessage('bot', 'Lỗi: Không nhận được phản hồi từ trợ lý. Vui lòng thử lại.', false);
+                  }
+              } catch (error) {
+                  console.error('Lỗi:', error);
+                  loadingMessage.remove();
+                  addMessage('bot', 'Lỗi kết nối: Không thể gửi yêu cầu đến server.', false);
+              }
+          }
+
+          sendButton.addEventListener('click', sendQuestion);
+
+          // Xử lý gửi bằng phím Enter
+          input.addEventListener('keypress', (e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  sendQuestion();
+              }
+          });
+
+          // Tin nhắn chào mừng ban đầu
+          addMessage('bot', `Xin chào ${USER_FULLNAME}. Tôi là Trợ lý Thông tin chính thức của Trường Đại học Kỹ thuật Công nghiệp. Tôi có thể hỗ trợ bạn về thông tin tuyển sinh, quy chế, và các vấn đề liên quan đến sinh viên. Hãy đặt câu hỏi của bạn!`, false);
+      });
+    </script>
+  </body>
+</html>
