@@ -76,7 +76,22 @@ class UserRole(enum.Enum):
     student = "student"
     teacher = "teacher"
     admin = "admin"
+class DocumentBase(BaseModel):
+    tieude: str
+    mota: str
+    loai_vanban: Literal["Thông báo", "Quy định"]
+    phong_ban: str
+    ngay_ban_hanh: datetime.date # Sử dụng date cho việc nhập liệu
 
+
+class DocumentCreate(DocumentBase):
+    # Đường dẫn file sẽ được xử lý khi upload thực tế,
+    # nhưng ở đây ta đơn giản hóa để mô tả API CRUD
+    duong_dan_file: str
+
+
+class DocumentUpdate(DocumentBase):
+    duong_dan_file: str # Có thể cho phép thay đổi file
 
 class DBUser(Base):
     __tablename__ = "nguoidung"  # Tên bảng đã thống nhất
@@ -123,6 +138,17 @@ class DBChatHistory(Base):
     conversation = relationship("DBChatConversation", back_populates="messages")
     user = relationship("DBUser")
 
+class DBDocument(Base):
+    __tablename__ = "vanban" # Tên bảng mới
+
+    id = Column(Integer, primary_key=True, index=True)
+    tieude = Column(String(255), nullable=False) # Tiêu đề văn bản
+    mota = Column(String(1000), nullable=False) # Mô tả ngắn
+    loai_vanban = Column(String(50), nullable=False) # Loại: 'Thông báo', 'Quy định'
+    phong_ban = Column(String(100), nullable=False) # Phòng ban ban hành
+    ngay_ban_hanh = Column(DateTime, default=datetime.datetime.utcnow) # Ngày ban hành
+    # Giả định đường dẫn tệp (file_path)
+    duong_dan_file = Column(String(255), nullable=False)
 # TẠO BẢNG TRONG DATABASE (GỌI 1 LẦN DUY NHẤT SAU KHI ĐỊNH NGHĨA TẤT CẢ MODELS)
 Base.metadata.create_all(bind=engine)
 # ----------------------------------------------------------------------
@@ -606,3 +632,95 @@ async def create_upload_file(file: UploadFile = File(...)):
     except Exception as e:
         logger.error(f"Error uploading file {file.filename}: {e}")
         raise HTTPException(status_code=500, detail=f"Could not upload file: {str(e)}")
+
+#----QUAN LY TAI LIEU-----------
+
+# API Tìm kiếm (Cho mọi người: Student, Teacher, Admin)
+@app.get("/api/documents", tags=["Document Management"])
+def get_documents(
+        search: str = None,
+        doc_type: str = None,
+        department: str = None,
+        db: Session = Depends(get_db)
+):
+    """API tìm kiếm và lọc tài liệu."""
+    query = db.query(DBDocument)
+
+    if search:
+        query = query.filter(DBDocument.tieude.contains(search) | DBDocument.mota.contains(search))
+
+    if doc_type and doc_type != "Tất cả":
+        query = query.filter(DBDocument.loai_vanban == doc_type)
+
+    if department and department != "Tất cả":
+        query = query.filter(DBDocument.phong_ban == department)
+
+    # Sắp xếp theo ngày ban hành mới nhất
+    documents = query.order_by(desc(DBDocument.ngay_ban_hanh)).all()
+
+    return [
+        {
+            "id": doc.id,
+            "tieude": doc.tieude,
+            "mota": doc.mota,
+            "loai_vanban": doc.loai_vanban,
+            "phong_ban": doc.phong_ban,
+            "ngay_ban_hanh": doc.ngay_ban_hanh.strftime("%d/%m/%Y"),
+            "duong_dan_file": doc.duong_dan_file
+        }
+        for doc in documents
+    ]
+
+
+# API Thêm mới (Chỉ Admin/Teacher)
+@app.post("/api/documents", tags=["Document Management"])
+def create_document(doc: DocumentCreate, db: Session = Depends(get_db)):
+    # LƯU Ý: Cần thêm logic xác thực vai trò (role) ở đây (Admin/Teacher)
+
+    new_doc = DBDocument(
+        tieude=doc.tieude,
+        mota=doc.mota,
+        loai_vanban=doc.loai_vanban,
+        phong_ban=doc.phong_ban,
+        ngay_ban_hanh=doc.ngay_ban_hanh,
+        duong_dan_file=doc.duong_dan_file  # Giả định file đã upload
+    )
+    db.add(new_doc)
+    db.commit()
+    db.refresh(new_doc)
+    return {"message": "Tài liệu đã được thêm thành công.", "id": new_doc.id}
+
+
+# API Cập nhật (Chỉ Admin/Teacher)
+@app.put("/api/documents/{doc_id}", tags=["Document Management"])
+def update_document(doc_id: int, doc: DocumentUpdate, db: Session = Depends(get_db)):
+    # LƯU Ý: Cần thêm logic xác thực vai trò (role) ở đây (Admin/Teacher)
+
+    db_doc = db.query(DBDocument).filter(DBDocument.id == doc_id).first()
+    if not db_doc:
+        raise HTTPException(status_code=404, detail="Không tìm thấy tài liệu.")
+
+    # Cập nhật các trường
+    db_doc.tieude = doc.tieude
+    db_doc.mota = doc.mota
+    db_doc.loai_vanban = doc.loai_vanban
+    db_doc.phong_ban = doc.phong_ban
+    db_doc.ngay_ban_hanh = doc.ngay_ban_hanh
+    db_doc.duong_dan_file = doc.duong_dan_file
+
+    db.commit()
+    return {"message": f"Tài liệu ID {doc_id} đã được cập nhật."}
+
+
+# API Xóa (Chỉ Admin/Teacher)
+@app.delete("/api/documents/{doc_id}", tags=["Document Management"])
+def delete_document(doc_id: int, db: Session = Depends(get_db)):
+    # LƯU Ý: Cần thêm logic xác thực vai trò (role) ở đây (Admin/Teacher)
+
+    db_doc = db.query(DBDocument).filter(DBDocument.id == doc_id).first()
+    if not db_doc:
+        raise HTTPException(status_code=404, detail="Không tìm thấy tài liệu.")
+
+    db.delete(db_doc)
+    db.commit()
+    return {"message": f"Tài liệu ID {doc_id} đã được xóa thành công."}

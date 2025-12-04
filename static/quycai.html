@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html class="light" lang="vi"><head>
+<html class="light" lang="vi">
+<head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Tra cứu Quy chế - Quy định & Thông báo</title>
@@ -9,28 +10,49 @@
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
 <style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-    </style>
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    /* Thêm CSS cho Modal (popup) */
+    .modal {
+        display: none; /* Ẩn mặc định */
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+        background-color: #fefefe;
+        margin: 10% auto;
+        padding: 20px;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 600px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+</style>
 <script id="tailwind-config">
-      tailwind.config = {
+    tailwind.config = {
         darkMode: "class",
         theme: {
-          extend: {
-            colors: {
-              "primary": "#135bec",
-              "background-light": "#f6f6f8",
-              "background-dark": "#101622",
+            extend: {
+                colors: {
+                    "primary": "#135bec",
+                    "background-light": "#f6f6f8",
+                    "background-dark": "#101622",
+                },
+                fontFamily: {
+                    "display": ["Lexend", "sans-serif"]
+                },
+                borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
             },
-            fontFamily: {
-              "display": ["Lexend", "sans-serif"]
-            },
-            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
-          },
         },
-      }
-    </script>
+    }
+</script>
 </head>
 <body class="font-display">
 <div class="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark group/design-root overflow-x-hidden">
@@ -50,9 +72,9 @@
         <a class="text-slate-900 dark:text-slate-200 text-sm font-medium leading-normal" href="khach.html">Chatbot</a>
         <a class="text-primary text-sm font-medium leading-normal border-b-2 border-primary" href="quycai.html">Tra cứu thông tin</a>
         <a class="text-slate-900 dark:text-slate-200 text-sm font-medium leading-normal" href="contact.html">Liên hệ</a>
-        <button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]">
-            <span class="truncate">Đăng nhập</span>
-        </button>
+        <a href="login.html" class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em]">
+        <span class="truncate">Đăng nhập</span>
+        </a>
     </div>
     <div class="flex items-center gap-3">
         <button class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300">
@@ -76,7 +98,7 @@
         <div class="flex items-center justify-center p-3 text-gray-500 dark:text-gray-400">
             <span class="material-symbols-outlined text-xl">search</span>
         </div>
-        <input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-xl text-gray-900 dark:text-white focus:outline-0 focus:ring-0 border-none bg-transparent placeholder:text-gray-500 dark:placeholder:text-gray-400 px-0 text-base font-normal leading-normal" placeholder="Nhập từ khóa tìm kiếm..." value=""/>
+        <input id="search-input" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-xl text-gray-900 dark:text-white focus:outline-0 focus:ring-0 border-none bg-transparent placeholder:text-gray-500 dark:placeholder:text-gray-400 px-0 text-base font-normal leading-normal" placeholder="Nhập từ khóa tìm kiếm..." value=""/>
     </div>
 </div>
 <div class="grid grid-cols-1 gap-6 px-4 py-8 lg:grid-cols-4">
@@ -106,79 +128,23 @@
                     <option>Phòng Đào tạo</option>
                     <option>Phòng Công tác Sinh viên</option>
                     <option>Phòng Kế hoạch - Tài chính</option>
+                    <option>Phòng Khoa học Công nghệ</option>
                 </select>
             </div>
         </div>
         <div class="flex flex-col gap-2 pt-4">
-            <button class="flex items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold transition-colors hover:bg-primary/90">Áp dụng</button>
-            <button class="flex items-center justify-center rounded-lg h-10 px-4 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm font-medium transition-colors hover:bg-gray-200 dark:hover:bg-gray-600">Xóa bộ lọc</button>
+            <button id="apply-filter-btn" class="flex items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold transition-colors hover:bg-primary/90">Áp dụng</button>
+            <button id="clear-filter-btn" class="flex items-center justify-center rounded-lg h-10 px-4 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm font-medium transition-colors hover:bg-gray-200 dark:hover:bg-gray-600">Xóa bộ lọc</button>
         </div>
     </aside>
-    <main class="col-span-1 lg:col-span-3 flex flex-col gap-4">
-        <div class="flex flex-col gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-850 p-6">
-            <h3 class="text-slate-900 dark:text-slate-200 text-lg font-bold leading-tight">Thông báo về lịch thi cuối kỳ học kỳ 2 năm học 2023-2024</h3>
-            <p class="text-slate-700 dark:text-slate-400 text-sm font-normal leading-normal">Chi tiết lịch thi, phòng thi và danh sách sinh viên các môn học đại cương và chuyên ngành trong học kỳ 2, năm học 2023-2024.</p>
-            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-600 dark:text-slate-400">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-sm font-semibold">Thông báo</span>
-                <span>|</span>
-                <span>Ngày ban hành: 20/05/2024</span>
-                <span>|</span>
-                <span>Phòng Đào tạo</span>
-            </div>
-            <div class="flex flex-wrap items-center gap-3 pt-3">
-                <button class="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-primary text-white text-sm font-bold transition-colors hover:bg-primary/90">
-                    <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
-                    <span>Xem chi tiết</span>
-                </button>
-                <button class="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-primary/10 dark:bg-primary/20 text-primary text-sm font-semibold hover:bg-primary/20 transition-colors">
-                    <span class="material-symbols-outlined" style="font-size: 16px;">download</span>
-                    <span>Tải xuống PDF</span>
-                </button>
-            </div>
+    <main id="document-list-container" class="col-span-1 lg:col-span-3 flex flex-col gap-4">
+        <div id="add-document-section" class="hidden">
+            <button id="add-document-btn" class="flex items-center justify-center gap-2 rounded-lg h-10 px-4 bg-green-600 text-white text-sm font-bold transition-colors hover:bg-green-700">
+                <span class="material-symbols-outlined" style="font-size: 16px;">add</span>
+                <span>Thêm mới Tài liệu</span>
+            </button>
         </div>
-        <div class="flex flex-col gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-850 p-6">
-            <h3 class="text-slate-900 dark:text-slate-200 text-lg font-bold leading-tight">Quy định về việc xét và cấp học bổng khuyến khích học tập</h3>
-            <p class="text-slate-700 dark:text-slate-400 text-sm font-normal leading-normal">Quy định chi tiết về đối tượng, tiêu chuẩn, mức học bổng, quy trình xét và cấp học bổng khuyến khích học tập cho sinh viên hệ chính quy.</p>
-            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-600 dark:text-slate-400">
-                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 text-sm font-semibold">Quy định</span>
-                <span>|</span>
-                <span>Ngày ban hành: 15/04/2024</span>
-                <span>|</span>
-                <span>Phòng Công tác Sinh viên</span>
-            </div>
-            <div class="flex flex-wrap items-center gap-3 pt-3">
-                <button class="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-primary text-white text-sm font-bold transition-colors hover:bg-primary/90">
-                    <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
-                    <span>Xem chi tiết</span>
-                </button>
-                <button class="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-primary/10 dark:bg-primary/20 text-primary text-sm font-semibold hover:bg-primary/20 transition-colors">
-                    <span class="material-symbols-outlined" style="font-size: 16px;">download</span>
-                    <span>Tải xuống PDF</span>
-                </button>
-            </div>
-        </div>
-        <div class="flex flex-col gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-850 p-6">
-            <h3 class="text-slate-900 dark:text-slate-200 text-lg font-bold leading-tight">Hướng dẫn đóng học phí học kỳ 1 năm học 2024-2025</h3>
-            <p class="text-slate-700 dark:text-slate-400 text-sm font-normal leading-normal">Thông báo về mức học phí, thời hạn và các hình thức đóng học phí cho học kỳ 1 sắp tới. Sinh viên vui lòng hoàn thành trước thời hạn quy định.</p>
-            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-600 dark:text-slate-400">
-                 <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-sm font-semibold">Thông báo</span>
-                <span>|</span>
-                <span>Ngày ban hành: 10/04/2024</span>
-                <span>|</span>
-                <span>Phòng Kế hoạch - Tài chính</span>
-            </div>
-            <div class="flex flex-wrap items-center gap-3 pt-3">
-                <button class="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-primary text-white text-sm font-bold transition-colors hover:bg-primary/90">
-                    <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
-                    <span>Xem chi tiết</span>
-                </button>
-                 <button class="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-primary/10 dark:bg-primary/20 text-primary text-sm font-semibold hover:bg-primary/20 transition-colors">
-                    <span class="material-symbols-outlined" style="font-size: 16px;">download</span>
-                    <span>Tải xuống PDF</span>
-                </button>
-            </div>
-        </div>
-        <div class="flex justify-center items-center gap-1 pt-6">
+        <div id="pagination-section" class="flex justify-center items-center gap-1 pt-6">
             <button class="flex items-center justify-center size-9 rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
                 <span class="material-symbols-outlined text-xl">chevron_left</span>
             </button>
@@ -200,4 +166,336 @@
 </div>
 </div>
 </div>
-</body></html>
+
+<div id="document-modal" class="modal">
+    <div class="modal-content dark:bg-gray-850 dark:text-white">
+        <h3 id="modal-title" class="text-xl font-bold mb-4">Thêm mới Tài liệu</h3>
+        <form id="document-form" class="flex flex-col gap-4">
+            <input type="hidden" id="doc-id">
+
+            <div class="flex flex-col gap-1">
+                <label for="modal-tieude" class="text-sm font-medium">Tiêu đề</label>
+                <input type="text" id="modal-tieude" required class="form-input rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700">
+            </div>
+            <div class="flex flex-col gap-1">
+                <label for="modal-mota" class="text-sm font-medium">Mô tả ngắn</label>
+                <textarea id="modal-mota" required rows="3" class="form-textarea rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700"></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1">
+                    <label for="modal-loai-vanban" class="text-sm font-medium">Loại văn bản</label>
+                    <select id="modal-loai-vanban" required class="form-select rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700">
+                        <option value="Thông báo">Thông báo</option>
+                        <option value="Quy định">Quy định</option>
+                    </select>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label for="modal-phong-ban" class="text-sm font-medium">Phòng ban</label>
+                    <input type="text" id="modal-phong-ban" required class="form-input rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1">
+                    <label for="modal-ngay-ban-hanh" class="text-sm font-medium">Ngày ban hành</label>
+                    <input type="date" id="modal-ngay-ban-hanh" required class="form-input rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label for="modal-duong-dan-file" class="text-sm font-medium">Đường dẫn File (URL)</label>
+                    <input type="url" id="modal-duong-dan-file" required class="form-input rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-4">
+                <button type="button" id="close-modal-btn" class="rounded-lg h-10 px-4 bg-gray-300 text-gray-800 text-sm font-medium hover:bg-gray-400 transition-colors">Hủy</button>
+                <button type="submit" id="save-document-btn" class="rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold transition-colors hover:bg-primary/90">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const API_BASE_URL = "http://127.0.0.1:8000";
+
+
+// DÒNG MỚI ĐÃ SỬA: Đảm bảo khớp với key được lưu trong login.html
+    const userRole = localStorage.getItem('user_role') || 'guest';
+    const userId = localStorage.getItem('user_id') || 0;
+
+    const documentContainer = document.getElementById('document-list-container');
+    const searchInput = document.getElementById('search-input');
+    const docTypeSelect = document.getElementById('document-type');
+    const departmentSelect = document.getElementById('department');
+    const applyButton = document.getElementById('apply-filter-btn');
+    const clearButton = document.getElementById('clear-filter-btn');
+    const addDocumentSection = document.getElementById('add-document-section');
+    const addDocumentButton = document.getElementById('add-document-btn');
+    const paginationSection = document.getElementById('pagination-section');
+
+    // Modal elements
+    const modal = document.getElementById('document-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const documentForm = document.getElementById('document-form');
+    const closeModalButton = document.getElementById('close-modal-btn');
+
+    // --- HELPER FUNCTIONS ---
+    function getBadgeColor(type) {
+        if (type === "Quy định") {
+            return { bg: "bg-green-100 dark:bg-green-900/50", text: "text-green-700 dark:text-green-300" };
+        }
+        return { bg: "bg-blue-100 dark:bg-blue-900/50", text: "text-blue-700 dark:text-blue-300" };
+    }
+
+    function showModal(docData = null) {
+        documentForm.reset();
+        if (docData) {
+            modalTitle.textContent = "Cập nhật Tài liệu";
+            document.getElementById('doc-id').value = docData.id;
+            document.getElementById('modal-tieude').value = docData.tieude;
+            document.getElementById('modal-mota').value = docData.mota;
+            document.getElementById('modal-loai-vanban').value = docData.loai_vanban;
+            document.getElementById('modal-phong-ban').value = docData.phong_ban;
+
+            // Chuyển đổi định dạng ngày: DD/MM/YYYY -> YYYY-MM-DD
+            const parts = docData.ngay_ban_hanh.split('/');
+            if (parts.length === 3) {
+                 document.getElementById('modal-ngay-ban-hanh').value = `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+
+            document.getElementById('modal-duong-dan-file').value = docData.duong_dan_file;
+
+        } else {
+            modalTitle.textContent = "Thêm mới Tài liệu";
+            document.getElementById('doc-id').value = '';
+        }
+        modal.style.display = "block";
+    }
+
+    // --- RENDER DỮ LIỆU ---
+    function renderDocuments(documents) {
+        // Giữ lại Nút Thêm Mới và Phân Trang
+        documentContainer.innerHTML = '';
+        documentContainer.appendChild(addDocumentSection);
+
+        if (documents.length === 0) {
+            const noData = document.createElement('p');
+            noData.className = 'text-slate-700 dark:text-slate-400 text-base font-normal leading-normal p-6';
+            noData.textContent = 'Không tìm thấy văn bản nào phù hợp với điều kiện tìm kiếm.';
+            documentContainer.appendChild(noData);
+            documentContainer.appendChild(paginationSection);
+            return;
+        }
+
+        documents.forEach(doc => {
+            const colors = getBadgeColor(doc.loai_vanban);
+
+            let adminButtons = '';
+            if (userRole === 'admin' || userRole === 'teacher') {
+                adminButtons = `
+                    <button onclick="handleEdit(${doc.id})" class="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-yellow-500 text-white text-sm font-bold transition-colors hover:bg-yellow-600">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+                        <span>Sửa</span>
+                    </button>
+                    <button onclick="handleDelete(${doc.id})" class="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-red-500 text-white text-sm font-bold transition-colors hover:bg-red-600">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">delete</span>
+                        <span>Xóa</span>
+                    </button>
+                `;
+            }
+
+            const documentHtml = `
+                <div class="flex flex-col gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-850 p-6" data-doc-id="${doc.id}">
+                    <h3 class="text-slate-900 dark:text-slate-200 text-lg font-bold leading-tight">${doc.tieude}</h3>
+                    <p class="text-slate-700 dark:text-slate-400 text-sm font-normal leading-normal">${doc.mota}</p>
+                    <div class="flex flex-wrap items-center gap-3 text-xs text-slate-600 dark:text-slate-400">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${colors.bg} ${colors.text} text-sm font-semibold">${doc.loai_vanban}</span>
+                        <span>|</span>
+                        <span>Ngày ban hành: ${doc.ngay_ban_hanh}</span>
+                        <span>|</span>
+                        <span>${doc.phong_ban}</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3 pt-3">
+                        <a href="${doc.duong_dan_file}" target="_blank" class="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-primary text-white text-sm font-bold transition-colors hover:bg-primary/90">
+                            <span class="material-symbols-outlined" style="font-size: 16px;">visibility</span>
+                            <span>Xem chi tiết</span>
+                        </a>
+                        <a href="${doc.duong_dan_file}" download class="flex items-center justify-center gap-2 rounded-lg h-9 px-4 bg-primary/10 dark:bg-primary/20 text-primary text-sm font-semibold hover:bg-primary/20 transition-colors">
+                            <span class="material-symbols-outlined" style="font-size: 16px;">download</span>
+                            <span>Tải xuống PDF</span>
+                        </a>
+                        ${adminButtons}
+                    </div>
+                </div>
+            `;
+            documentContainer.insertAdjacentHTML('beforeend', documentHtml);
+        });
+
+        documentContainer.appendChild(paginationSection);
+    }
+
+    // --- CHỨC NĂNG API (R-READ) ---
+    async function fetchDocuments(searchTerm = '', docType = '', department = '') {
+        const url = new URL(`${API_BASE_URL}/api/documents`);
+        if (searchTerm) url.searchParams.append('search', searchTerm);
+        // Kiểm tra và thêm tham số nếu không phải 'Tất cả'
+        if (docType && docType !== 'Tất cả') url.searchParams.append('doc_type', docType);
+        if (department && department !== 'Tất cả') url.searchParams.append('department', department);
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            renderDocuments(data);
+        } catch (error) {
+            console.error("Lỗi khi tải tài liệu:", error);
+            documentContainer.innerHTML = '<p class="p-6 text-red-500">Đã xảy ra lỗi khi kết nối với máy chủ hoặc tải dữ liệu.</p>';
+        }
+    }
+
+    // --- CHỨC NĂNG API (C, U, D) ---
+    async function handleSaveDocument(isUpdate) {
+        const docId = document.getElementById('doc-id').value;
+
+        // Chuyển đổi định dạng ngày: YYYY-MM-DD -> YYYY-MM-DD
+        const dateInput = document.getElementById('modal-ngay-ban-hanh').value;
+
+        const docData = {
+            tieude: document.getElementById('modal-tieude').value,
+            mota: document.getElementById('modal-mota').value,
+            loai_vanban: document.getElementById('modal-loai-vanban').value,
+            phong_ban: document.getElementById('modal-phong-ban').value,
+            ngay_ban_hanh: dateInput, // Định dạng YYYY-MM-DD
+            duong_dan_file: document.getElementById('modal-duong-dan-file').value,
+        };
+
+        const method = isUpdate ? 'PUT' : 'POST';
+        const url = isUpdate ? `${API_BASE_URL}/api/documents/${docId}?user_id=${userId}` : `${API_BASE_URL}/api/documents?user_id=${userId}`;
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(docData)
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || `Lỗi HTTP: ${response.status}`);
+            }
+
+            const result = await response.json();
+            alert(result.message);
+            modal.style.display = "none";
+            fetchDocuments(); // Tải lại danh sách
+
+        } catch (error) {
+            console.error("Lỗi khi lưu tài liệu:", error);
+            alert(`Thao tác thất bại: ${error.message}`);
+        }
+    }
+
+    // Dán đè hàm này vào quycai.html (khoảng dòng 300)
+
+    async function handleEdit(id) {
+    // CHUYỂN ID SANG KIỂU SỐ (NUMBER) để đảm bảo so sánh chính xác với doc.id
+    const documentId = parseInt(id);
+
+    try {
+        // GỌI API LẤY TOÀN BỘ DANH SÁCH (Không dùng tham số search)
+        const response = await fetch(`${API_BASE_URL}/api/documents`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const documents = await response.json();
+
+        // TÌM KIẾM CHÍNH XÁC DỰA TRÊN ID SỐ
+        const docToEdit = documents.find(doc => doc.id === documentId);
+
+        if (docToEdit) {
+            showModal(docToEdit);
+        } else {
+            alert("Không tìm thấy dữ liệu tài liệu để sửa.");
+        }
+    } catch (error) {
+        console.error("Lỗi khi tải dữ liệu sửa:", error);
+        alert("Lỗi khi tải dữ liệu sửa.");
+    }
+}
+
+    async function handleDelete(id) {
+        if (!confirm(`Bạn có chắc chắn muốn XÓA tài liệu ID ${id} không?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/documents/${id}?user_id=${userId}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || `Lỗi HTTP: ${response.status}`);
+            }
+
+            const result = await response.json();
+            alert(result.message);
+            fetchDocuments(); // Tải lại danh sách sau khi xóa
+
+        } catch (error) {
+            console.error("Lỗi khi xóa tài liệu:", error);
+            alert(`Thao tác xóa thất bại: ${error.message}`);
+        }
+    }
+
+
+    // --- XỬ LÝ SỰ KIỆN ---
+
+    // 1. Phân quyền hiển thị nút Thêm mới
+    if (userRole === 'admin' || userRole === 'teacher') {
+        addDocumentSection.classList.remove('hidden');
+    }
+
+    // 2. Xử lý Modal
+    addDocumentButton.addEventListener('click', () => showModal());
+    closeModalButton.addEventListener('click', () => modal.style.display = "none");
+    documentForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const isUpdate = document.getElementById('doc-id').value !== '';
+        handleSaveDocument(isUpdate);
+    });
+
+    // 3. Xử lý Tìm kiếm và Lọc
+    applyButton.addEventListener('click', () => {
+        const searchTerm = searchInput.value;
+        const docType = docTypeSelect.value;
+        const department = departmentSelect.value;
+        fetchDocuments(searchTerm, docType, department);
+    });
+
+    clearButton.addEventListener('click', () => {
+        searchInput.value = '';
+        docTypeSelect.value = 'Tất cả';
+        departmentSelect.value = 'Tất cả';
+        fetchDocuments();
+    });
+
+    // 4. Tải dữ liệu lần đầu
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchDocuments();
+    });
+
+    // Close modal khi click ngoài
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+
+</script>
+</body>
+</html>
