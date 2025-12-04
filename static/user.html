@@ -19,6 +19,11 @@
       .material-symbols-outlined {
         font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
       }
+      /* Đảm bảo khung chat container có thể cuộn */
+      #chat-messages-content {
+        /* Không cần thiết lập chiều cao cố định, flexbox sẽ tự xử lý */
+        min-height: 100%;
+      }
     </style>
     <script id="tailwind-config">
       tailwind.config = {
@@ -74,8 +79,22 @@
             <span class="text-sm font-medium">Quy chế & Quy định</span>
           </a>
         </nav>
+
+        <div class="p-4 border-t border-gray-200 dark:border-gray-800 flex-1 overflow-y-auto space-y-2">
+            <button
+                id="new-chat-button"
+                class="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-primary text-white hover:bg-primary/90 transition-colors text-sm font-medium"
+            >
+                <span class="material-symbols-outlined text-xl">add</span>
+                Cuộc trò chuyện mới
+            </button>
+
+            <div id="conversation-list" class="space-y-1">
+                <p class="text-xs text-gray-500 text-center pt-2">Đang tải...</p>
+            </div>
+        </div>
         <div
-          class="p-4 border-t border-gray-200 dark:border-gray-800 space-y-3"
+          class="p-4 border-t border-gray-200 dark:border-gray-800 space-y-3 flex-shrink-0"
         >
           <div class="flex items-center gap-3">
             <div
@@ -105,7 +124,7 @@
       <main class="flex-1 overflow-y-auto">
         <div class="flex flex-col h-full">
           <header
-            class="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-900"
+            class="p-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-white dark:bg-gray-900 flex-shrink-0"
           >
             <h2 class="text-xl font-semibold">Trợ lý Hỏi & Đáp</h2>
             <button
@@ -116,16 +135,17 @@
             </button>
           </header>
 
-          <div class="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-950">
+          <div id="chat-container" class="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-950">
             <div
-              id="chat-container"
-              class="max-w-4xl mx-auto flex flex-col space-y-4"
+              class="max-w-4xl mx-auto flex flex-col space-y-4 h-full"
             >
-              </div>
+              <div id="chat-messages-content" class="flex flex-col space-y-4">
+                  </div>
+            </div>
           </div>
 
           <footer
-            class="p-6 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
+            class="p-6 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 flex-shrink-0"
           >
             <div class="max-w-4xl mx-auto">
               <div
@@ -168,114 +188,252 @@
     </div>
 
     <script>
-      // Đảm bảo URL cơ sở của API khớp với nơi server FastAPI đang chạy
-      const API_BASE_URL = window.location.origin;
+    // Đảm bảo URL cơ sở của API khớp với nơi server FastAPI đang chạy
+    const API_BASE_URL = window.location.origin;
 
-      function showMessage(type, message, containerId = 'message-container') {
-          // Chỉ cần định nghĩa để tránh lỗi, không hiển thị trong chat UI
-          console.log(`[${type.toUpperCase()}] ${message}`);
-      }
+    function logout() {
+        localStorage.clear();
+        window.location.href = 'login.html';
+    }
 
-      function logout() {
-          localStorage.clear();
-          window.location.href = 'login.html';
-      }
+    // Lấy thông tin người dùng từ Local Storage
+    const USER_ID = localStorage.getItem('user_id');
+    const USER_ROLE = localStorage.getItem('user_role');
+    const USER_FULLNAME = localStorage.getItem('user_fullname');
 
-      const USER_ROLE = localStorage.getItem('user_role');
-      const USER_FULLNAME = localStorage.getItem('user_fullname');
+    // KIỂM TRA ĐĂNG NHẬP VÀ VAI TRÒ
+    if (!USER_ROLE || USER_ROLE === 'admin' || !USER_ID) {
+        alert('Bạn cần đăng nhập với vai trò Sinh viên/Giáo viên để sử dụng chức năng này.');
+        window.location.href = 'login.html';
+    }
 
-      // KIỂM TRA ĐĂNG NHẬP VÀ VAI TRÒ
-      if (!USER_ROLE || USER_ROLE === 'admin') {
-          alert('Bạn cần đăng nhập với vai trò Sinh viên/Giáo viên để sử dụng chức năng này.');
-          window.location.href = 'login.html';
-      }
+    // BIẾN QUAN TRỌNG MỚI: Lưu ID cuộc trò chuyện hiện tại
+    let currentConversationId = 0;
+    let conversationListElement;
 
-      document.addEventListener('DOMContentLoaded', () => {
-          // Cập nhật tên người dùng
-          const fullnameElement = document.getElementById('user-fullname');
-          if (fullnameElement) fullnameElement.textContent = USER_FULLNAME || 'Người dùng';
+    document.addEventListener('DOMContentLoaded', () => {
+        // Cập nhật tên người dùng
+        const fullnameElement = document.getElementById('user-fullname');
+        if (fullnameElement) fullnameElement.textContent = USER_FULLNAME || 'Người dùng';
 
-          const input = document.getElementById('question-input');
-          const sendButton = document.getElementById('send-button');
-          const chatContainer = document.getElementById('chat-container');
+        // Gán các biến cục bộ (đúng với phạm vi của bạn)
+        const input = document.getElementById('question-input');
+        const sendButton = document.getElementById('send-button');
+        const chatContainer = document.getElementById('chat-container'); // Khung cuộn chính
 
-          // --- Hàm thêm tin nhắn vào giao diện ---
-          function addMessage(sender, content, isHtml = false) {
-              const messageElement = document.createElement('div');
-              const isUser = sender === 'user';
+        // Gán các phần tử HTML mới
+        const chatContent = document.getElementById('chat-messages-content'); // Khung nội dung tin nhắn
+        conversationListElement = document.getElementById('conversation-list');
+        const newChatButton = document.getElementById('new-chat-button');
 
-              messageElement.className = `flex mb-4 ${isUser ? 'justify-end' : 'justify-start'}`;
 
-              // Chèn nội dung, cho phép HTML để hiển thị <table>/<h3>
-              const contentHTML = isHtml ? content : `<p class="text-sm">${content}</p>`;
+        // --- Hàm thêm tin nhắn vào giao diện (Giữ nguyên) ---
+        function addMessage(sender, content, isHtml = false, id = null) {
+            const messageElement = document.createElement('div');
+            const isUser = sender === 'user';
 
-              messageElement.innerHTML = `
-                  <div class="${isUser ? 'bg-primary text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white'} p-3 max-w-2xl rounded-xl ${isUser ? 'rounded-br-none' : 'rounded-tl-none'} shadow-md">
-                      ${contentHTML}
-                  </div>
-              `;
-              chatContainer.appendChild(messageElement);
-              chatContainer.scrollTop = chatContainer.scrollHeight;
-          }
+            messageElement.className = `flex mb-4 ${isUser ? 'justify-end' : 'justify-start'}`;
+            const contentHTML = isHtml ? content : `<p class="text-sm">${content}</p>`;
 
-          // --- Hàm gửi câu hỏi ---
-          async function sendQuestion() {
-              const question = input.value.trim();
-              if (!question) return;
+            const messageBubble = document.createElement('div');
+            messageBubble.id = id;
+            messageBubble.className = `p-3 max-w-2xl rounded-xl shadow-md ${isUser
+                ? 'bg-primary text-white rounded-br-none'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-tl-none'
+            }`;
 
-              addMessage('user', question);
-              input.value = '';
+            messageBubble.innerHTML = contentHTML;
+            messageElement.appendChild(messageBubble);
+            chatContent.appendChild(messageElement); // <-- TRỎ VÀO CHAT CONTENT
+            chatContainer.scrollTop = chatContainer.scrollHeight; // <-- CUỘN KHUNG CHÍNH
 
-              // Thêm trạng thái loading
-              const loadingMessage = document.createElement('div');
-              loadingMessage.id = 'loading-message';
-              loadingMessage.className = 'flex mb-4 justify-start';
-              loadingMessage.innerHTML = `
-                  <div class="bg-gray-200 dark:bg-gray-700 p-3 max-w-2xl rounded-xl rounded-tl-none shadow-md">
-                      <p class="text-sm text-gray-500 dark:text-gray-400 italic">Đang tìm kiếm và tạo câu trả lời...</p>
-                  </div>
-              `;
-              chatContainer.appendChild(loadingMessage);
-              chatContainer.scrollTop = chatContainer.scrollHeight;
+            return messageElement;
+        }
 
-              try {
-                  const response = await fetch(`${API_BASE_URL}/ask`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ question: question })
-                  });
+        // --- Hàm kích hoạt/chuyển đổi cuộc trò chuyện (MỚI) ---
+        function setActiveConversation(convId) {
+            currentConversationId = convId;
+            chatContent.innerHTML = ''; // Xóa tin nhắn cũ
 
-                  const data = await response.json();
+            // Cập nhật trạng thái active trên sidebar
+            document.querySelectorAll('.conversation-item').forEach(el => {
+                el.classList.remove('bg-primary/20', 'text-primary');
+                el.classList.add('hover:bg-gray-100', 'dark:hover:bg-gray-800');
+                const icon = el.querySelector('.conv-icon');
+                if (icon) icon.classList.remove('text-primary');
+                if (icon) icon.classList.add('text-gray-400');
+            });
+            const activeElement = document.getElementById(`conv-${convId}`);
+            if (activeElement) {
+                activeElement.classList.add('bg-primary/20', 'text-primary');
+                activeElement.classList.remove('hover:bg-gray-100', 'dark:hover:bg-gray-800');
+                const activeIcon = activeElement.querySelector('.conv-icon');
+                if (activeIcon) activeIcon.classList.add('text-primary');
+                if (activeIcon) activeIcon.classList.remove('text-gray-400');
+            }
 
-                  // Xóa trạng thái loading
-                  loadingMessage.remove();
+            loadChatHistory(currentConversationId); // Tải tin nhắn mới
+            input.focus();
+        }
 
-                  if (response.ok && data.answer) {
-                      // Chèn câu trả lời HTML từ server
-                      addMessage('bot', data.answer, true);
-                  } else {
-                      addMessage('bot', 'Lỗi: Không nhận được phản hồi từ trợ lý. Vui lòng thử lại.', false);
-                  }
-              } catch (error) {
-                  console.error('Lỗi:', error);
-                  loadingMessage.remove();
-                  addMessage('bot', 'Lỗi kết nối: Không thể gửi yêu cầu đến server.', false);
-              }
-          }
+        // --- Hàm tải danh sách cuộc trò chuyện (MỚI) ---
+        async function loadConversations(shouldActivateFirst = true) {
+            if (!USER_ID) return;
+            conversationListElement.innerHTML = '<p class="text-xs text-gray-500 text-center pt-2">Đang tải...</p>';
 
-          sendButton.addEventListener('click', sendQuestion);
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/conversations/${USER_ID}`);
+                const conversations = await response.json();
 
-          // Xử lý gửi bằng phím Enter
-          input.addEventListener('keypress', (e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  sendQuestion();
-              }
-          });
+                conversationListElement.innerHTML = '';
 
-          // Tin nhắn chào mừng ban đầu
-          addMessage('bot', `Xin chào ${USER_FULLNAME}. Tôi là Trợ lý Thông tin chính thức của Trường Đại học Kỹ thuật Công nghiệp. Tôi có thể hỗ trợ bạn về thông tin tuyển sinh, quy chế, và các vấn đề liên quan đến sinh viên. Hãy đặt câu hỏi của bạn!`, false);
-      });
-    </script>
+                if (response.ok && conversations.length > 0) {
+                    conversations.forEach((conv, index) => {
+                        const convElement = document.createElement('a');
+                        convElement.id = `conv-${conv.id}`;
+                        convElement.href = '#';
+                        convElement.className = `conversation-item flex flex-col gap-1 p-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer`;
+                        // Sử dụng truncate để cắt tiêu đề dài
+                        convElement.innerHTML = `
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-xl text-gray-400 conv-icon">forum</span>
+                                <span class="text-sm font-medium truncate">${conv.tieude}</span>
+                            </div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 ml-7">${conv.thoigian}</p>
+                        `;
+                        convElement.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            setActiveConversation(conv.id);
+                        });
+                        conversationListElement.appendChild(convElement);
+
+                        // Thiết lập cuộc trò chuyện mới nhất làm mặc định (chỉ lần đầu)
+                        if (shouldActivateFirst && index === 0) {
+                            setActiveConversation(conv.id);
+                        }
+                    });
+                } else {
+                    conversationListElement.innerHTML = '<p class="text-xs text-gray-500 text-center pt-2">Không có cuộc trò chuyện nào.</p>';
+                    currentConversationId = 0;
+                    chatContent.innerHTML = '';
+                    addMessage('bot', `Xin chào ${USER_FULLNAME}. Nhấn "Cuộc trò chuyện mới" hoặc đặt câu hỏi để bắt đầu!`, false);
+                }
+            } catch (error) {
+                console.error('Lỗi tải danh sách cuộc trò chuyện:', error);
+                conversationListElement.innerHTML = '<p class="text-xs text-red-500 text-center pt-2">Lỗi tải dữ liệu.</p>';
+            }
+        }
+
+        // --- Hàm tải lịch sử chat (SỬ DỤNG Conv ID) ---
+        async function loadChatHistory(convId) {
+            if (!convId) return; // Nếu ID là 0, thì không tải gì cả
+
+            chatContent.innerHTML = ''; // Xóa nội dung chat hiện tại
+            addMessage('bot', 'Đang tải lịch sử cuộc trò chuyện...', false, 'loading-history');
+
+            try {
+                // SỬA API: Dùng conversation_id thay vì user_id
+                const response = await fetch(`${API_BASE_URL}/api/chathistory/${convId}`);
+                const history = await response.json();
+
+                const loadingElement = document.getElementById('loading-history');
+                if (loadingElement) loadingElement.remove(); // Xóa trạng thái loading
+
+                if (response.ok && history.length > 0) {
+                    history.forEach(msg => {
+                        const isBotHtml = msg.sender === 'bot';
+                        addMessage(msg.sender, msg.content, isBotHtml);
+                    });
+                } else {
+                    addMessage('bot', 'Cuộc trò chuyện trống. Hãy là người mở lời!', false);
+                }
+            } catch (error) {
+                console.error('Lỗi tải lịch sử chat:', error);
+                const loadingElement = document.getElementById('loading-history');
+                if (loadingElement) loadingElement.remove();
+                addMessage('bot', 'Lỗi kết nối: Không thể tải lịch sử chat.', false);
+            }
+        }
+
+
+        // --- Hàm gửi câu hỏi (SỬA LẠI ĐỂ GỬI CONVERSATION ID) ---
+        async function sendQuestion() {
+            const question = input.value.trim();
+            if (!question) return;
+
+            addMessage('user', question);
+            input.value = '';
+
+            const loadingMessage = addMessage('bot', 'Đang tìm kiếm và tạo câu trả lời...', false, 'loading-message');
+
+            try {
+                const payload = {
+                    question: question,
+                    user_id: parseInt(USER_ID),
+                    conversation_id: currentConversationId // GỬI ID CUỘC TRÒ CHUYỆN HIỆN TẠI (0 nếu là mới)
+                };
+
+                const response = await fetch(`${API_BASE_URL}/ask`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                loadingMessage.remove();
+
+                if (response.ok && data.answer) {
+                    addMessage('bot', data.answer, true);
+
+                    // NẾU LÀ CUỘC TRÒ CHUYỆN MỚI, CẬP NHẬT ID VÀ TẢI LẠI DANH SÁCH
+                    if (data.conversation_id && data.conversation_id !== currentConversationId) {
+                        currentConversationId = data.conversation_id;
+                        // Tải lại danh sách, nhưng không tự động kích hoạt mục đầu tiên
+                        await loadConversations(false);
+                        setActiveConversation(currentConversationId); // Kích hoạt cuộc trò chuyện vừa tạo
+                    }
+                } else {
+                    const errorDetail = data.detail || (data.message ? data.message : 'Lỗi không xác định');
+                    addMessage('bot', `Lỗi Server: ${errorDetail}`, false);
+                }
+            } catch (error) {
+                console.error('Lỗi:', error);
+                loadingMessage.remove();
+                addMessage('bot', 'Lỗi kết nối: Không thể gửi yêu cầu đến server.', false);
+            }
+        }
+
+        sendButton.addEventListener('click', sendQuestion);
+
+        // Xử lý gửi bằng phím Enter
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendQuestion();
+            }
+        });
+
+        // Xử lý Nút Tạo Cuộc Trò Chuyện Mới
+        newChatButton.addEventListener('click', () => {
+            currentConversationId = 0; // Đặt về 0 để báo hiệu tạo conversation mới
+            chatContent.innerHTML = '';
+            addMessage('bot', `Tuyệt vời! Hãy bắt đầu cuộc trò chuyện mới của bạn.`, false);
+
+            // Xóa trạng thái active khỏi tất cả các mục trên sidebar
+            document.querySelectorAll('.conversation-item').forEach(el => {
+                el.classList.remove('bg-primary/20', 'text-primary');
+                el.classList.add('hover:bg-gray-100', 'dark:hover:bg-gray-800');
+                const icon = el.querySelector('.conv-icon');
+                if (icon) icon.classList.remove('text-primary');
+                if (icon) icon.classList.add('text-gray-400');
+            });
+            input.focus();
+        });
+
+        // Tải danh sách cuộc trò chuyện khi khởi động
+        loadConversations();
+    });
+</script>
   </body>
 </html>

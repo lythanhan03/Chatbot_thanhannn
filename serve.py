@@ -3,7 +3,7 @@ import shutil
 import logging
 from typing import Dict, Any, List, TypedDict, Literal
 from pathlib import Path
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -11,14 +11,20 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 from langchain_core.documents import Document
 from passlib.context import CryptContext
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-# Đảm bảo 2 file này tồn tại trong thư mục 'core/'
-# Cần có các file: core/embeding/HuggingEmbed.py và core/llm/gemini_llm.py
+# Import SQLAlchemy và các thư viện liên quan
+from sqlalchemy import create_engine, Column, Integer, String, Boolean, Enum
+from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Integer, ForeignKey, DateTime
+from sqlalchemy.orm import relationship
+from sqlalchemy import desc
+import enum
+import datetime
+# Import RAG Core
 from core.embeding.HuggingEmbed import HuggingEmbed
 from core.llm.gemini_llm import LLM
-
-# Import Loaders
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import (
     PyPDFLoader, TextLoader, Docx2txtLoader, CSVLoader, UnstructuredExcelLoader
 )
@@ -31,34 +37,128 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 load_dotenv()
-# Đảm bảo có file .env với biến Gemini_api_key
 api_key = os.getenv("Gemini_api_key")
 
 DOCUMENT_DIR = "data"
 VECTOR_DB_PATH = "vectordb"
 os.makedirs(DOCUMENT_DIR, exist_ok=True)
 
-# Khởi tạo context băm mật khẩu (Bắt buộc cho bảo mật)
+# Khởi tạo context băm mật khẩu
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
-# --- Khởi tạo Admin CỐ ĐỊNH ---
-ADMIN_EMAIL = "admin@tnut.edu.vn"
-ADMIN_PASSWORD_PLAIN = "admin123"
+# ----------------------------------------------------------------------
+# CẤU HÌNH DATABASE MYSQL (SQLAlchemy)
+# ----------------------------------------------------------------------
 
-ADMIN_HASHED_PASSWORD = pwd_context.hash(ADMIN_PASSWORD_PLAIN)
+# THAY THẾ CHUỖI NÀY BẰNG THÔNG TIN KẾT NỐI CỦA BẠN:
+# Format: mysql+pymysql://USER:PASSWORD@HOST:PORT/DATABASE_NAME
+SQLALCHEMY_DATABASE_URL = "mysql+pymysql://root:admin@127.0.0.1:3306/chatbot_db"
 
-# Giả lập Database (Lưu trữ người dùng trong bộ nhớ)
-fake_db: List[Dict[str, Any]] = [
-    {
-        "id": 1,
-        "fullname": "Super Admin",
-        "email": ADMIN_EMAIL,
-        "role": "admin",
-        "hashed_password": ADMIN_HASHED_PASSWORD,
-        "is_approved": True,  # Luôn được phê duyệt
-    }
-]
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
 
+
+# Dependency cho Database Session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+# ----------------------------------------------------------------------
+# ĐỊNH NGHĨA MODELS CHO MYSQL (Tên cột tiếng Việt không dấu)
+# ----------------------------------------------------------------------
+class UserRole(enum.Enum):
+    """Enum cho cột vaitro"""
+    student = "student"
+    teacher = "teacher"
+    admin = "admin"
+
+
+class DBUser(Base):
+    __tablename__ = "nguoidung"  # Tên bảng đã thống nhất
+
+    id = Column(Integer, primary_key=True, index=True)
+    hoten = Column(String(100), index=True, nullable=False)  # fullname
+    email = Column(String(100), unique=True, index=True, nullable=False)
+    vaitro = Column(Enum(UserRole), default=UserRole.student, nullable=False)  # role
+    matkhau = Column(String(255), nullable=False)  # hashed_password
+    daduyet = Column(Boolean, default=False, nullable=False)  # is_approved
+
+class SenderRole(enum.Enum):
+    """Enum cho cột nguoigui"""
+    user = "user"
+    bot = "bot"
+
+
+class DBChatConversation(Base):
+    __tablename__ = "cuoctrochuyen"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nguoidung_id = Column(Integer, ForeignKey("nguoidung.id"), nullable=False)
+    tieude = Column(String(255), nullable=False)
+    thoigian_taobang = Column(DateTime, default=datetime.datetime.utcnow)
+
+    # Định nghĩa mối quan hệ ngược lại với lichsuchat
+    messages = relationship("DBChatHistory", back_populates="conversation")
+
+
+class DBChatHistory(Base):
+    __tablename__ = "lichsuchat"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    # KHÓA NGOẠI MỚI: Liên kết tới bảng cuoctrochuyen
+    conversation_id = Column(Integer, ForeignKey("cuoctrochuyen.id"), nullable=False)
+
+    nguoidung_id = Column(Integer, ForeignKey("nguoidung.id"), nullable=False)
+    nguoigui = Column(Enum(SenderRole), nullable=False)
+    noidung = Column(String(5000), nullable=False)
+    thoigian = Column(DateTime, default=datetime.datetime.utcnow)
+
+    # Mối quan hệ để SQLAlchemy quản lý
+    conversation = relationship("DBChatConversation", back_populates="messages")
+    user = relationship("DBUser")
+
+# TẠO BẢNG TRONG DATABASE (GỌI 1 LẦN DUY NHẤT SAU KHI ĐỊNH NGHĨA TẤT CẢ MODELS)
+Base.metadata.create_all(bind=engine)
+# ----------------------------------------------------------------------
+# LOGIC TẠO ADMIN MẶC ĐỊNH (Chỉ chạy một lần)
+# ----------------------------------------------------------------------
+def create_initial_admin():
+    db = SessionLocal()
+    admin_email = "admin@tnut.edu.vn"
+    admin_password_plain = "admin123"
+
+    try:
+        if db.query(DBUser).filter(DBUser.email == admin_email).first() is None:
+            hashed_password = pwd_context.hash(admin_password_plain)
+            admin_user = DBUser(
+                hoten="Super Admin",
+                email=admin_email,
+                vaitro=UserRole.admin,
+                matkhau=hashed_password,
+                daduyet=True
+            )
+            db.add(admin_user)
+            db.commit()
+            logger.info("Tài khoản Admin mặc định đã được tạo trong MySQL.")
+    except Exception as e:
+        logger.error(f"Lỗi khi tạo tài khoản admin: {e}")
+    finally:
+        db.close()
+
+
+# Gọi hàm tạo Admin khi ứng dụng khởi động
+create_initial_admin()
+
+
+# ----------------------------------------------------------------------
+# CÁC CLASS VÀ HÀM RAG (GIỮ NGUYÊN)
+# ----------------------------------------------------------------------
 
 # --- Class RAG ---
 class ProcessData:
@@ -80,27 +180,15 @@ vector_Hugging = HuggingEmbed()
 processor = ProcessData(chunk_size=500, chunk_overlap=100)
 
 
-# ==================== ĐỊNH NGHĨA CẤU TRÚC DỮ LIỆU (Pydantic Models) ====================
-
-class UserRegister(BaseModel):
-    """Cấu trúc dữ liệu nhận vào khi người dùng đăng ký."""
-    fullname: str
-    email: str
-    role: Literal["student", "teacher", "admin"]
-    password: str
-
-
 class QuestionRequest(BaseModel):
     question: str
-
-
+    user_id: int
+    conversation_id: int = 0
 class State(TypedDict):
     question: str
     context: List[Document]
     answer: str
 
-
-# ==================== Logic RAG ====================
 
 def load_documents_from_dir(directory: str) -> List[Document]:
     all_documents = []
@@ -115,12 +203,6 @@ def load_documents_from_dir(directory: str) -> List[Document]:
             loader = TextLoader(file_path)
         elif filename.lower().endswith((".docx", ".doc")):
             loader = Docx2txtLoader(file_path)
-        # Bổ sung các loại file khác nếu cần:
-        # elif filename.lower().endswith(".csv"):
-        #     loader = CSVLoader(file_path)
-        # elif filename.lower().endswith((".xls", ".xlsx")):
-        #     loader = UnstructuredExcelLoader(file_path)
-
         if loader:
             try:
                 all_documents.extend(loader.load())
@@ -154,7 +236,6 @@ def retrain_vector_store_full():
     return new_vector_store
 
 
-# Khởi tạo vector store khi ứng dụng khởi động
 try:
     vector_Hugging.load_vector_store(VECTOR_DB_PATH)
     logger.info("Vector store loaded successfully on startup.")
@@ -170,12 +251,7 @@ except Exception as e:
 
 
 def retrivel(state: State) -> State:
-    """
-    Hàm truy xuất dữ liệu.
-    k=7 được giữ lại để đảm bảo lấy đủ Context cho LLM, vì các đoạn đã được tối ưu hóa.
-    """
     if vector_Hugging.vector_db is None: return {**state, "context": []}
-    # Tăng k lên 7-10 để lấy được nhiều context hơn theo yêu cầu
     similarity_search = vector_Hugging.vector_db.similarity_search(query=state['question'], k=7)
     return {**state, "context": similarity_search}
 
@@ -194,16 +270,13 @@ def generate(state: State):
     context_text = "\n".join([doc.page_content for doc in state['context']])
     question = state['question']
 
-    # --- CHỈ THỊ HTML MỚI ĐÃ TỐI ƯU ---
     html_instruction = (
         "QUAN TRỌNG: Câu trả lời phải được định dạng bằng **HTML hợp lệ** (sử dụng các thẻ <h3>, <table>, <b>, <br>, <p>) để hiển thị chuyên nghiệp trên giao diện web. "
         "Sử dụng thẻ <table> cho dữ liệu có cấu trúc (như danh sách, bảng). Tuyệt đối không sử dụng định dạng Markdown (như ##, *, -). "
         "Hãy **TỔNG HỢP** thông tin từ tất cả các đoạn trích liên quan để đưa ra câu trả lời đầy đủ nhất."
     )
-    # --- KẾT THÚC CHỈ THỊ HTML MỚI ---
 
     if not context_text:
-        # Trả lời lỗi bằng thẻ HTML <p>
         return {**state,
                 "answer": "<p>Tôi xin lỗi, tôi không tìm thấy bất kỳ thông tin liên quan nào trong cơ sở dữ liệu của Nhà trường. Vui lòng thử câu hỏi khác.</p>"}
 
@@ -211,16 +284,13 @@ def generate(state: State):
     is_student_query = intents["is_student_query"]
     is_admission_query = intents["is_admission_query"]
 
-    # Prompt generation logic
     if is_student_query and not is_admission_query:
-        # Sinh viên
         prompt = (
             f"Bạn là trợ lý thông tin sinh viên của Trường Đại học Kỹ thuật Công nghiệp, Thái Nguyên. {html_instruction}"
             f"Ưu tiên trả lời câu hỏi dựa trên các thông tin từ bảng nếu có. Dựa trên các thông tin sau, hãy trả lời câu hỏi của người dùng một cách chính xác và ngắn gọn. Nếu thông tin không liên quan hoặc không đủ để trả lời, hãy trả lời bằng một thẻ <p> rằng 'Tôi không tìm thấy thông tin phù hợp về sinh viên này'."
             f"\nNội dung được cung cấp:\n{context_text}\nCâu hỏi của sinh viên: {state['question']}")
 
     elif is_admission_query and not is_student_query:
-        # Tuyển sinh
         prompt = (
             f"Bạn là trợ lý tư vấn tuyển sinh của Trường Đại học Kỹ thuật Công nghiệp, Thái Nguyên. {html_instruction}"
             f"Dựa trên nội dung sau, hãy trả lời câu hỏi của người dùng một cách đầy đủ và chính xác. Nếu không có thông tin phù hợp, hãy trả lời bằng một thẻ <p> rằng 'Tôi không tìm thấy thông tin phù hợp về tuyển sinh'."
@@ -228,7 +298,6 @@ def generate(state: State):
             f"\nNội dung được cung cấp:\n{context_text}\nCâu hỏi về tuyển sinh: {state['question']}")
 
     else:
-        # Prompt tổng quát/mặc định
         prompt = (
             f"Bạn là Trợ lý Thông tin chính thức của Trường Đại học Kỹ thuật Công nghiệp, Thái Nguyên (TNUT). {html_instruction}"
             f"Dựa vào **DUY NHẤT** các thông tin được cung cấp dưới đây, hãy trả lời câu hỏi của người dùng. "
@@ -241,7 +310,9 @@ def generate(state: State):
     return {**state, "answer": answer}
 
 
-# ==================== Cấu Hình FastAPI Endpoints ====================
+# ----------------------------------------------------------------------
+# Cấu Hình FastAPI Endpoints
+# ----------------------------------------------------------------------
 
 app = FastAPI()
 
@@ -250,21 +321,31 @@ app.add_middleware(
     allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"],
 )
 
-# Đảm bảo thư mục static/ tồn tại và chứa các file HTML
-# Bạn cần tạo một thư mục tên là 'static' và đặt các file HTML vào đó
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-# ENDPOINT GỐC ĐÃ CẬP NHẬT: Ưu tiên index.html
 @app.get("/", include_in_schema=False)
 async def get_index():
     if not os.path.exists("static/index.html"):
-        # Nếu trang chủ mới không có, chuyển hướng người dùng đến trang login
         return FileResponse("static/login.html")
     return FileResponse("static/index.html")
 
 
-# ==================== CÁC ENDPOINT FRONTEND ĐÃ CẬP NHẬT ====================
+@app.get("/api/conversations/{user_id}", tags=["Chatbot"])
+def get_conversations(user_id: int, db: Session = Depends(get_db)):
+    """API lấy danh sách các cuộc trò chuyện của người dùng."""
+    conversations = db.query(DBChatConversation).filter(
+        DBChatConversation.nguoidung_id == user_id
+    ).order_by(desc(DBChatConversation.thoigian_taobang)).all()
+
+    return [
+        {
+            "id": conv.id,
+            "tieude": conv.tieude,
+            "thoigian": conv.thoigian_taobang.strftime("%Y-%m-%d %H:%M")
+        }
+        for conv in conversations
+    ]
 
 @app.get("/login")
 @app.get("/login.html")
@@ -297,7 +378,7 @@ async def get_admin_page():
         raise HTTPException(status_code=404, detail="Admin page (admin.html) not found in static folder.")
     return FileResponse("static/admin.html")
 
-# NEW ENDPOINT: contact.html
+
 @app.get("/contact")
 @app.get("/contact.html")
 async def get_contact_page():
@@ -305,7 +386,7 @@ async def get_contact_page():
         raise HTTPException(status_code=404, detail="Contact page (contact.html) not found in static folder.")
     return FileResponse("static/contact.html")
 
-#khach
+
 @app.get("/khach")
 @app.get("/khach.html")
 async def get_contact_page():
@@ -313,7 +394,7 @@ async def get_contact_page():
         raise HTTPException(status_code=404, detail="Contact page (khach.html) not found in static folder.")
     return FileResponse("static/khach.html")
 
-# NEW ENDPOINT: quycai.html
+
 @app.get("/quycai")
 @app.get("/quycai.html")
 async def get_quycai_page():
@@ -321,95 +402,181 @@ async def get_quycai_page():
         raise HTTPException(status_code=404, detail="Regulation page (quycai.html) not found in static folder.")
     return FileResponse("static/quycai.html")
 
+@app.get("/api/chathistory/{conversation_id}", tags=["Chatbot"])
+def get_chat_history(conversation_id: int, db: Session = Depends(get_db)):
+    """API lấy lịch sử chat cho một cuộc trò chuyện cụ thể."""
+    messages = db.query(DBChatHistory).filter(
+        DBChatHistory.conversation_id == conversation_id
+    ).order_by(DBChatHistory.thoigian).all()
 
-# ==================== ENDPOINTS QUẢN LÝ NGƯỜI DÙNG (Đã sửa lỗi) ====================
+    return [
+        {
+            "id": msg.id,
+            "sender": msg.nguoigui.value,
+            "content": msg.noidung,
+            "timestamp": msg.thoigian.strftime("%H:%M")
+        }
+        for msg in messages
+    ]
+
+# ----------------------------------------------------------------------
+# ENDPOINTS QUẢN LÝ NGƯỜI DÙNG (Sử dụng MySQL)
+# ----------------------------------------------------------------------
+
+class UserRegister(BaseModel):
+    """Cấu trúc dữ liệu nhận vào khi người dùng đăng ký."""
+    fullname: str
+    email: str
+    role: Literal["student", "teacher", "admin"]
+    password: str
+
 
 @app.post("/api/register", tags=["User Management"])
-async def register_user(user: UserRegister):
+async def register_user(user: UserRegister, db: Session = Depends(get_db)):
     """API xử lý việc đăng ký tài khoản mới. Tài khoản mới luôn cần phê duyệt."""
 
-    if user.email.lower() == ADMIN_EMAIL:
-        raise HTTPException(status_code=400,
-                            detail="Email này đã được sử dụng cho tài khoản quản trị cố định. Vui lòng sử dụng email khác.")
-
-    if any(u['email'] == user.email for u in fake_db):
+    # 1. Kiểm tra Email đã tồn tại
+    if db.query(DBUser).filter(DBUser.email == user.email).first():
         raise HTTPException(status_code=400, detail="Email đã được đăng ký.")
 
+    # 2. Băm mật khẩu và tạo user mới
     hashed_password = pwd_context.hash(user.password)
 
-    new_id = max([u['id'] for u in fake_db]) + 1 if fake_db else 1
+    new_user = DBUser(
+        hoten=user.fullname,
+        email=user.email,
+        vaitro=UserRole(user.role),
+        matkhau=hashed_password,
+        daduyet=False,
+    )
 
-    new_user = {
-        "id": new_id,
-        "fullname": user.fullname,
-        "email": user.email,
-        "role": user.role,
-        "hashed_password": hashed_password,
-        "is_approved": False,
-    }
-    fake_db.append(new_user)
+    # 3. Thêm vào DB
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
 
     return {"message": "Đăng ký thành công. Tài khoản đang chờ quản trị viên phê duyệt."}
 
 
 @app.post("/api/login", tags=["User Management"])
-async def login(credentials: Dict[str, str]):
+async def login(credentials: Dict[str, str], db: Session = Depends(get_db)):
     """API xử lý đăng nhập và xác thực người dùng."""
     email = credentials.get("email")
     password = credentials.get("password")
 
-    user = next((u for u in fake_db if u['email'] == email), None)
+    # 1. Truy vấn DB
+    user = db.query(DBUser).filter(DBUser.email == email).first()
 
     if not user:
         raise HTTPException(status_code=401, detail="Email hoặc mật khẩu không đúng.")
 
-    if not pwd_context.verify(password, user['hashed_password']):
+    if not pwd_context.verify(password, user.matkhau):
         raise HTTPException(status_code=401, detail="Email hoặc mật khẩu không đúng.")
 
-    if not user['is_approved']:
+    if not user.daduyet:
         raise HTTPException(status_code=403, detail="Tài khoản chưa được quản trị viên phê duyệt.")
 
-    # SỬA LỖI QUAN TRỌNG: Đã đổi 'user_id' thành 'id' để khớp với frontend
+    # 2. Trả về thông tin
     return {"message": "Đăng nhập thành công!",
-            **{"id": user['id'], "role": user['role'], "fullname": user['fullname']}}
+            "id": user.id,
+            "role": user.vaitro.value,
+            "fullname": user.hoten}
 
 
 @app.get("/api/pending-users", tags=["Admin"])
-async def get_pending_users():
+async def get_pending_users(db: Session = Depends(get_db)):
     """API lấy danh sách các tài khoản đang chờ duyệt (Dành cho Admin)."""
+    pending_users_db = db.query(DBUser).filter(DBUser.daduyet == False).all()
+
+    # Chuyển đổi từ DBUser objects sang dictionary
     pending_users = [
-        {"id": u['id'], "fullname": u['fullname'], "email": u['email'], "role": u['role']}
-        for u in fake_db if u['is_approved'] == False
+        {"id": u.id, "fullname": u.hoten, "email": u.email, "role": u.vaitro.value}
+        for u in pending_users_db
     ]
     return pending_users
 
 
 @app.post("/api/approve-user/{user_id}", tags=["Admin"])
-async def approve_user(user_id: int):
+async def approve_user(user_id: int, db: Session = Depends(get_db)):
     """API phê duyệt tài khoản (Dành cho Admin)."""
-    for user in fake_db:
-        if user['id'] == user_id:
-            if user['is_approved']:
-                raise HTTPException(status_code=400, detail="Tài khoản này đã được phê duyệt.")
+    user = db.query(DBUser).filter(DBUser.id == user_id).first()
 
-            user['is_approved'] = True
-            logger.info(f"User ID {user_id} approved.")
-            return {"message": f"Tài khoản ID {user_id} đã được phê duyệt thành công."}
+    if not user:
+        raise HTTPException(status_code=404, detail="Không tìm thấy người dùng.")
 
-    raise HTTPException(status_code=404, detail="Không tìm thấy người dùng.")
+    if user.daduyet:
+        raise HTTPException(status_code=400, detail="Tài khoản này đã được phê duyệt.")
+
+    # Cập nhật trạng thái và lưu vào DB
+    user.daduyet = True
+    db.commit()
+    logger.info(f"User ID {user_id} approved.")
+    return {"message": f"Tài khoản ID {user_id} đã được phê duyệt thành công."}
 
 
-# ==================== ENDPOINTS CHATBOT VÀ ADMIN RAG ====================
+@app.get("/api/users", tags=["Admin"])
+async def get_approved_users(db: Session = Depends(get_db)):
+    """API lấy danh sách TẤT CẢ các tài khoản đã được phê duyệt (Sửa lỗi 404)."""
+    approved_users_db = db.query(DBUser).filter(DBUser.daduyet == True).all()
+
+    # Chuyển đổi từ DBUser objects sang dictionary
+    approved_users = [
+        {"id": u.id, "fullname": u.hoten, "email": u.email, "role": u.vaitro.value}
+        for u in approved_users_db
+    ]
+    return approved_users
+
+
+# ----------------------------------------------------------------------
+# ENDPOINTS CHATBOT VÀ ADMIN RAG (GIỮ NGUYÊN)
+# ----------------------------------------------------------------------
 
 @app.post("/ask", tags=["Chatbot"])
-async def ask_question(request: QuestionRequest) -> Dict[str, Any]:
-    if not request.question:
-        raise HTTPException(status_code=400, detail="Question is required")
+async def ask_question(request: QuestionRequest, db: Session = Depends(get_db)):
+    # 1. Xử lý Logic Cuộc Trò Chuyện
+    conversation_id = request.conversation_id
+
+    if conversation_id == 0:
+        # TẠO CUỘC TRÒ CHUYỆN MỚI
+        new_conversation = DBChatConversation(
+            nguoidung_id=request.user_id,
+            tieude=request.question[:250]  # Lấy câu hỏi đầu tiên làm tiêu đề
+        )
+        db.add(new_conversation)
+        db.commit()
+        db.refresh(new_conversation)
+        conversation_id = new_conversation.id
+
+    # 2. LƯU LỊCH SỬ TIN NHẮN USER (Sử dụng conversation_id mới/hiện tại)
+    user_message = DBChatHistory(
+        conversation_id=conversation_id,  # <--- Dùng ID mới/hiện tại
+        nguoidung_id=request.user_id,
+        nguoigui=SenderRole.user,
+        noidung=request.question,
+        thoigian=datetime.datetime.utcnow()
+    )
+    db.add(user_message)
+
+    # ... (Giữ nguyên phần gọi retrivel và generate)
     state = {"question": request.question, "context": [], "answer": ""}
     state = retrivel(state)
     final_state = generate(state)
-    return final_state
+    answer_text = final_state.get("answer", "Xin lỗi, tôi không tìm thấy thông tin.")
 
+    # 3. LƯU LỊCH SỬ TIN NHẮN BOT
+    bot_message = DBChatHistory(
+        conversation_id=conversation_id,  # <--- Dùng ID mới/hiện tại
+        nguoidung_id=request.user_id,
+        nguoigui=SenderRole.bot,
+        noidung=answer_text,
+        thoigian=datetime.datetime.utcnow()
+    )
+    db.add(bot_message)
+    db.commit()
+    db.refresh(bot_message)
+
+    # TRẢ VỀ CẢ ANSWER VÀ CONVERSATION ID (để frontend cập nhật nếu đây là cuộc trò chuyện mới)
+    return {"answer": answer_text, "conversation_id": conversation_id}
 
 @app.post("/retrain", tags=["Admin"])
 async def retrain_model_full():
@@ -439,13 +606,3 @@ async def create_upload_file(file: UploadFile = File(...)):
     except Exception as e:
         logger.error(f"Error uploading file {file.filename}: {e}")
         raise HTTPException(status_code=500, detail=f"Could not upload file: {str(e)}")
-
-
-@app.get("/api/users", tags=["Admin"])
-async def get_approved_users():
-    """API lấy danh sách TẤT CẢ các tài khoản đã được phê duyệt (Sửa lỗi 404)."""
-    approved_users = [
-        {"id": u['id'], "fullname": u['fullname'], "email": u['email'], "role": u['role']}
-        for u in fake_db if u['is_approved'] == True
-    ]
-    return approved_users
