@@ -208,7 +208,7 @@ processor = ProcessData(chunk_size=500, chunk_overlap=100)
 
 class QuestionRequest(BaseModel):
     question: str
-    user_id: int
+    user_id: int = 0
     conversation_id: int = 0
 class State(TypedDict):
     question: str
@@ -562,46 +562,53 @@ async def ask_question(request: QuestionRequest, db: Session = Depends(get_db)):
     # 1. Xử lý Logic Cuộc Trò Chuyện
     conversation_id = request.conversation_id
 
-    if conversation_id == 0:
-        # TẠO CUỘC TRÒ CHUYỆN MỚI
-        new_conversation = DBChatConversation(
+    # Chỉ tạo/lưu cuộc trò chuyện nếu đây là người dùng đã đăng nhập (user_id > 0)
+    if request.user_id != 0:
+        if conversation_id == 0:
+            # TẠO CUỘC TRÒ CHUYỆN MỚI
+            new_conversation = DBChatConversation(
+                nguoidung_id=request.user_id,
+                tieude=request.question[:250]  # Lấy câu hỏi đầu tiên làm tiêu đề
+            )
+            db.add(new_conversation)
+            db.commit()
+            db.refresh(new_conversation)
+            conversation_id = new_conversation.id
+
+        # 2. LƯU LỊCH SỬ TIN NHẮN USER
+        user_message = DBChatHistory(
+            conversation_id=conversation_id,
             nguoidung_id=request.user_id,
-            tieude=request.question[:250]  # Lấy câu hỏi đầu tiên làm tiêu đề
+            nguoigui=SenderRole.user,
+            noidung=request.question,
+            thoigian=datetime.datetime.utcnow()
         )
-        db.add(new_conversation)
-        db.commit()
-        db.refresh(new_conversation)
-        conversation_id = new_conversation.id
+        db.add(user_message)
 
-    # 2. LƯU LỊCH SỬ TIN NHẮN USER (Sử dụng conversation_id mới/hiện tại)
-    user_message = DBChatHistory(
-        conversation_id=conversation_id,  # <--- Dùng ID mới/hiện tại
-        nguoidung_id=request.user_id,
-        nguoigui=SenderRole.user,
-        noidung=request.question,
-        thoigian=datetime.datetime.utcnow()
-    )
-    db.add(user_message)
-
-    # ... (Giữ nguyên phần gọi retrivel và generate)
+    # ----------------------------------------------------------------------
+    # Phần RAG Core (GIỮ NGUYÊN)
+    # ----------------------------------------------------------------------
     state = {"question": request.question, "context": [], "answer": ""}
     state = retrivel(state)
     final_state = generate(state)
     answer_text = final_state.get("answer", "Xin lỗi, tôi không tìm thấy thông tin.")
 
-    # 3. LƯU LỊCH SỬ TIN NHẮN BOT
-    bot_message = DBChatHistory(
-        conversation_id=conversation_id,  # <--- Dùng ID mới/hiện tại
-        nguoidung_id=request.user_id,
-        nguoigui=SenderRole.bot,
-        noidung=answer_text,
-        thoigian=datetime.datetime.utcnow()
-    )
-    db.add(bot_message)
-    db.commit()
-    db.refresh(bot_message)
+    # ----------------------------------------------------------------------
 
-    # TRẢ VỀ CẢ ANSWER VÀ CONVERSATION ID (để frontend cập nhật nếu đây là cuộc trò chuyện mới)
+    # 3. LƯU LỊCH SỬ TIN NHẮN BOT (Chỉ lưu nếu là người dùng đã đăng nhập)
+    if request.user_id != 0:
+        bot_message = DBChatHistory(
+            conversation_id=conversation_id,
+            nguoidung_id=request.user_id,
+            nguoigui=SenderRole.bot,
+            noidung=answer_text,
+            thoigian=datetime.datetime.utcnow()
+        )
+        db.add(bot_message)
+        db.commit()
+        # db.refresh(bot_message) # Không cần refresh bot_message nếu đã commit
+
+    # TRẢ VỀ CẢ ANSWER VÀ CONVERSATION ID (Nếu user_id=0, conversation_id vẫn là 0)
     return {"answer": answer_text, "conversation_id": conversation_id}
 
 @app.post("/retrain", tags=["Admin"])

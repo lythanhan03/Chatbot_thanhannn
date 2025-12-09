@@ -144,7 +144,11 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ question: question }),
+                body: JSON.stringify({
+                    question: question,
+                    user_id: 0, // <--- THÊM: user_id = 0 cho chế độ Khách
+                    conversation_id: 0 // Thêm luôn conversation_id để nhất quán
+                }),
             });
 
             const data = await response.json();
