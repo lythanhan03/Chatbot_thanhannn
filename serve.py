@@ -143,7 +143,7 @@ class DBDocument(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     tieude = Column(String(255), nullable=False) # Tiêu đề văn bản
-    mota = Column(String(1000), nullable=False) # Mô tả ngắn
+    mota = Column(String(5000), nullable=False) # Mô tả ngắn
     loai_vanban = Column(String(50), nullable=False) # Loại: 'Thông báo', 'Quy định'
     phong_ban = Column(String(100), nullable=False) # Phòng ban ban hành
     ngay_ban_hanh = Column(DateTime, default=datetime.datetime.utcnow) # Ngày ban hành

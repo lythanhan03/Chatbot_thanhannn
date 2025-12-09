@@ -43,70 +43,77 @@
       class="w-full grid lg:grid-cols-2 min-h-screen bg-white dark:bg-gray-900 shadow-xl"
     >
       <div
-        class="flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-16"
+        class="flex-1 flex flex-col p-6 sm:p-10 lg:p-16"
       >
-        <div class="w-full max-w-sm">
-          <div class="flex flex-col items-center">
-            <h1 class="text-3xl font-bold text-primary mb-2">Đăng nhập</h1>
-            <p class="text-gray-600 dark:text-gray-400 text-center">
-              Chào mừng bạn trở lại, vui lòng nhập thông tin tài khoản để tiếp tục.
-            </p>
-          </div>
+        <a class="flex items-center gap-2 py-2 px-4 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors shadow-md self-start mb-6" href="/">
+            <span class="material-symbols-outlined">home</span>
+            Trang Chủ
+        </a>
 
-          <div id="message-container" class="mt-6"></div>
-
-          <form id="login-form" class="mt-8 space-y-5">
-            <div>
-              <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                class="w-full h-11 px-4 text-gray-900 dark:text-white bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-primary focus:border-primary transition"
-                placeholder="vd: sinhvien@tnut.edu.vn"
-              />
-            </div>
-            <div>
-              <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Mật khẩu
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                class="w-full h-11 px-4 text-gray-900 dark:text-white bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-primary focus:border-primary transition"
-                placeholder="Nhập mật khẩu của bạn"
-              />
+        <div class="flex items-center justify-center flex-grow">
+          <div class="w-full max-w-sm">
+            <div class="flex flex-col items-center">
+              <h1 class="text-3xl font-bold text-primary mb-2">Đăng nhập</h1>
+              <p class="text-gray-600 dark:text-gray-400 text-center">
+                Chào mừng bạn trở lại, vui lòng nhập thông tin tài khoản để tiếp tục.
+              </p>
             </div>
 
-            <div class="flex items-center justify-between">
-              <div class="flex items-center">
-                <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"/>
-                <label for="remember-me" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">Nhớ mật khẩu</label>
+            <div id="message-container" class="mt-6"></div>
+
+            <form id="login-form" class="mt-8 space-y-5">
+              <div>
+                <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  class="w-full h-11 px-4 text-gray-900 dark:text-white bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-primary focus:border-primary transition"
+                  placeholder="vd: sinhvien@tnut.edu.vn"
+                />
               </div>
-              <a href="#" class="text-sm font-medium text-primary hover:underline">Quên mật khẩu?</a>
+              <div>
+                <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Mật khẩu
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  class="w-full h-11 px-4 text-gray-900 dark:text-white bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-primary focus:border-primary transition"
+                  placeholder="Nhập mật khẩu của bạn"
+                />
+              </div>
+
+              <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                  <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"/>
+                  <label for="remember-me" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">Nhớ mật khẩu</label>
+                </div>
+                <a href="#" class="text-sm font-medium text-primary hover:underline">Quên mật khẩu?</a>
+              </div>
+
+              <button type="submit" class="w-full h-12 px-5 bg-primary text-white text-base font-bold rounded-lg transition-colors hover:bg-primary/90">
+                Đăng nhập
+              </button>
+            </form>
+
+            <div class="mt-6 text-center text-sm">
+              <p class="text-gray-600 dark:text-gray-400">
+                Chưa có tài khoản? <a href="register.html" class="font-bold text-primary hover:underline">Đăng ký ngay</a>
+              </p>
             </div>
 
-            <button type="submit" class="w-full h-12 px-5 bg-primary text-white text-base font-bold rounded-lg transition-colors hover:bg-primary/90">
-              Đăng nhập
-            </button>
-          </form>
-
-          <div class="mt-6 text-center text-sm">
-            <p class="text-gray-600 dark:text-gray-400">
-              Chưa có tài khoản? <a href="register.html" class="font-bold text-primary hover:underline">Đăng ký ngay</a>
-            </p>
-          </div>
-
-          <div class="mt-12 text-center">
-            <p class="text-xs text-gray-500 dark:text-gray-500">
-              © 2024 University Name. All rights reserved.
-            </p>
-            <a class="text-xs font-medium text-primary hover:underline" href="#">Hỗ trợ kỹ thuật</a>
+            <div class="mt-12 text-center">
+              <p class="text-xs text-gray-500 dark:text-gray-500">
+                © 2024 University Name. All rights reserved.
+              </p>
+              <a class="text-xs font-medium text-primary hover:underline" href="#">Hỗ trợ kỹ thuật</a>
+            </div>
           </div>
         </div>
       </div>
